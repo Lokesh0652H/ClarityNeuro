@@ -1,0 +1,71 @@
+{
+  "model_id": "efficientnet-b0-v1",
+  "model_name": "EfficientNet-B0 Brain Tumor Classifier",
+  "dataset_name": "Brain Tumor MRI Testing Set",
+  "class_labels": [
+    "glioma",
+    "meningioma",
+    "pituitary",
+    "notumor"
+  ],
+  "accuracy": 0.8275,
+  "precision": 0.8405,
+  "recall": 0.8275,
+  "f1_score": 0.8232,
+  "roc_auc": 0.9561,
+  "ece": 0.0307,
+  "confusion_matrix": [
+    [
+      275,
+      50,
+      14,
+      61
+    ],
+    [
+      18,
+      273,
+      29,
+      80
+    ],
+    [
+      0,
+      22,
+      377,
+      1
+    ],
+    [
+      1,
+      0,
+      0,
+      399
+    ]
+  ],
+  "class_metrics": {
+    "glioma": {
+      "precision": 0.9354,
+      "recall": 0.6875,
+      "f1_score": 0.7925,
+      "support": 400
+    },
+    "meningioma": {
+      "precision": 0.7913,
+      "recall": 0.6825,
+      "f1_score": 0.7329,
+      "support": 400
+    },
+    "pituitary": {
+      "precision": 0.8976,
+      "recall": 0.9425,
+      "f1_score": 0.9195,
+      "support": 400
+    },
+    "notumor": {
+      "precision": 0.7375,
+      "recall": 0.9975,
+      "f1_score": 0.848,
+      "support": 400
+    }
+  },
+  "test_samples": 1600,
+  "evaluation_date": "2026-10-22T13:32:00Z"
+}

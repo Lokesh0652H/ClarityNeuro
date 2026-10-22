@@ -23,30 +23,30 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fallback verified benchmark metrics if backend API is initializing
+  // Empirical benchmark metrics from genuine evaluation on 1,600 held-out test scans
   const fallbackMetrics: EvaluationData = {
     model_id: "efficientnet-b0-v1",
     model_name: "EfficientNet-B0 Brain Tumor Classifier",
     dataset_name: "Brain Tumor MRI Testing Set",
     test_samples: 1600,
-    accuracy: 0.9712,
-    precision: 0.9705,
-    recall: 0.9712,
-    f1_score: 0.9708,
-    roc_auc: 0.9942,
-    ece: 0.0318,
+    accuracy: 0.8275,
+    precision: 0.8405,
+    recall: 0.8275,
+    f1_score: 0.8232,
+    roc_auc: 0.9561,
+    ece: 0.0307,
     class_labels: ["glioma", "meningioma", "pituitary", "notumor"],
     confusion_matrix: [
-      [382, 11, 4, 3],    // Actual Glioma (400)
-      [12, 381, 4, 3],    // Actual Meningioma (400)
-      [2, 3, 394, 1],     // Actual Pituitary (400)
-      [1, 2, 0, 397],     // Actual No Tumor (400)
+      [275, 50, 14, 61], // Actual Glioma (400)
+      [18, 273, 29, 80], // Actual Meningioma (400)
+      [0, 22, 377, 1],   // Actual Pituitary (400)
+      [1, 0, 0, 399],    // Actual No Tumor (400)
     ],
     class_metrics: {
-      glioma: { precision: 0.9622, recall: 0.9550, f1_score: 0.9586, support: 400 },
-      meningioma: { precision: 0.9597, recall: 0.9525, f1_score: 0.9561, support: 400 },
-      pituitary: { precision: 0.9777, recall: 0.9850, f1_score: 0.9813, support: 400 },
-      notumor: { precision: 0.9827, recall: 0.9925, f1_score: 0.9876, support: 400 },
+      glioma: { precision: 0.9354, recall: 0.6875, f1_score: 0.7925, support: 400 },
+      meningioma: { precision: 0.7913, recall: 0.6825, f1_score: 0.7329, support: 400 },
+      pituitary: { precision: 0.8976, recall: 0.9425, f1_score: 0.9195, support: 400 },
+      notumor: { precision: 0.7375, recall: 0.9975, f1_score: 0.8480, support: 400 },
     },
   };
 

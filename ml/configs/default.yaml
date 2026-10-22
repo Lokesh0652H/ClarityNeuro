@@ -1,0 +1,92 @@
+# NeuroScan XAI - Default Machine Learning Configuration
+
+# Model Architecture Configuration
+model:
+  architecture: "efficientnet_b0"
+  pretrained: true
+  num_classes: 4
+  dropout_rate: 0.2
+  class_names:
+    - "glioma"
+    - "meningioma"
+    - "pituitary"
+    - "notumor"
+  class_mapping:
+    0: "glioma"
+    1: "meningioma"
+    2: "pituitary"
+    3: "notumor"
+
+# Dataset and DataLoader Configuration
+data:
+  raw_dir: "ml/data/raw"
+  train_split: "Training"
+  test_split: "Testing"
+  image_size: 224
+  crop_size: 224
+  resize_scale: 256
+  batch_size: 32
+  num_workers: 0  # Safe default for cross-platform CPU/GPU compatibility
+  pin_memory: true
+
+# Training Augmentation Pipeline
+augmentation:
+  random_horizontal_flip_prob: 0.5
+  random_rotation_degrees: 15
+  color_jitter:
+    brightness: 0.1
+    contrast: 0.1
+  random_resized_crop:
+    scale_min: 0.8
+    scale_max: 1.0
+
+# ImageNet Normalization Parameters
+normalization:
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+# Optimization and Loss Settings
+training:
+  epochs: 30
+  seed: 42
+  device: null  # Auto-detected (cuda if available, else cpu)
+  mixed_precision: false
+  early_stopping:
+    enabled: true
+    monitor: "val_acc"
+    patience: 7
+    mode: "max"
+
+optimizer:
+  name: "adamw"
+  learning_rate: 0.0003
+  weight_decay: 0.01
+  betas: [0.9, 0.999]
+
+scheduler:
+  type: "cosine"
+  min_lr: 1.0e-6
+
+loss:
+  type: "cross_entropy"
+  use_class_weights: true
+  weighting_strategy: "balanced"  # Inverse class frequency
+
+# Explainability & Uncertainty Quantification
+xai:
+  gradcam_pp:
+    target_layer: "conv_head"
+    colormap: "jet"
+    blend_alpha: 0.4
+  uncertainty:
+    mc_dropout_passes: 30
+    epsilon: 1.0e-12
+
+# File Paths and Storage
+paths:
+  checkpoints_dir: "ml/checkpoints"
+  best_checkpoint: "ml/checkpoints/best_model.pt"
+  last_checkpoint: "ml/checkpoints/last_model.pt"
+  reports_dir: "ml/reports"
+  evaluation_report: "ml/reports/evaluation_results.json"
+  manifest_path: "ml/data/manifest.json"

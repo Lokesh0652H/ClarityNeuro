@@ -103,7 +103,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-[#E5EAF1] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#68758A]">
-          <p>© {new Date().getFullYear()} NeuroScan XAI Platform. Built for scientific reproducibility.</p>
+          <p>© 2026 NeuroScan XAI Platform. Built for scientific reproducibility.</p>
           <div className="flex items-center gap-4">
             <span className="text-[#10B981] font-medium flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
