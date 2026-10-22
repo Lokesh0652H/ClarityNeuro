@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Temporary uploads
+temp_uploads/
+uploads/
+
+# Database
+*.db
+*.sqlite3
+
+# ML artifacts
+backend/models/*.pth
+backend/models/*.pt
+ml/data/raw/
+ml/data/processed/
+ml/data/splits/
+
+# Node
+node_modules/
+.next/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Byte-compiled
+*.pyc
+
+# Coverage
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Distribution
+*.tar.gz
+*.zip
