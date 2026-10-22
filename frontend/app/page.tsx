@@ -31,7 +31,7 @@ export default function HomePage() {
       subtitle: "Understand the model's reasoning",
       desc: "Pixel-level Grad-CAM++ attribution isolating cranial tumor margins.",
       icon: Sparkles,
-      iconBg: "bg-purple-50 text-purple-600 border-purple-100",
+      iconBg: "bg-purple-50/80 text-purple-600 border-purple-100",
       href: "/explainability"
     },
     {
@@ -39,7 +39,7 @@ export default function HomePage() {
       subtitle: "Glioma, Meningioma, Pituitary, No Tumor",
       desc: "Trained on 7,200 real MRI scans across 4 balanced categories.",
       icon: Brain,
-      iconBg: "bg-blue-50 text-blue-600 border-blue-100",
+      iconBg: "bg-blue-50/80 text-blue-600 border-blue-100",
       href: "/analyze"
     },
     {
@@ -47,7 +47,7 @@ export default function HomePage() {
       subtitle: "Built for real-world transparency",
       desc: "Disparate Impact Ratio 0.9524 and imaging-condition robustness audits.",
       icon: Scale,
-      iconBg: "bg-cyan-50 text-cyan-600 border-cyan-100",
+      iconBg: "bg-cyan-50/80 text-cyan-600 border-cyan-100",
       href: "/fairness"
     },
     {
@@ -55,7 +55,7 @@ export default function HomePage() {
       subtitle: "Not a clinical diagnostic tool",
       desc: "Engineered strictly for algorithmic interpretability and open science.",
       icon: Beaker,
-      iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100",
+      iconBg: "bg-indigo-50/80 text-indigo-600 border-indigo-100",
       href: "/documentation"
     },
   ];
@@ -106,10 +106,10 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#FAFAFD] text-[#0F172A]">
+    <div className="flex flex-col min-h-screen text-[#0F172A]">
       
       {/* Hero Section matching Image 1 & Image 2 */}
-      <section className="relative overflow-hidden pt-12 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-100 bg-grid-clean">
+      <section className="relative overflow-hidden pt-12 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -118,7 +118,7 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6 text-left">
               
               {/* Pill badge matching Image 2 */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-xs text-xs font-medium text-slate-700">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 border border-slate-200/80 shadow-xs text-xs font-medium text-slate-700 backdrop-blur-xs">
                 <span className="text-indigo-600">✦</span>
                 <span>Research build · EfficientNet-B0 · Grad-CAM++ · Model ethics</span>
               </div>
@@ -150,7 +150,7 @@ export default function HomePage() {
 
                 <Link
                   href="/fairness"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-slate-200/90 hover:bg-slate-50 text-slate-800 font-medium text-sm shadow-xs hover:shadow-sm transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200/90 hover:bg-white text-slate-800 font-medium text-sm shadow-xs hover:shadow-sm transition-all"
                 >
                   <ShieldCheck className="w-4 h-4 text-indigo-600" />
                   <span>Explore Model Ethics</span>
@@ -187,10 +187,10 @@ export default function HomePage() {
             <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
               
               {/* Visual Mode Selector (Neural Orb vs 3D Interactive) */}
-              <div className="absolute top-0 right-4 z-20 flex items-center bg-white/90 backdrop-blur-xs border border-slate-200 rounded-full p-1 shadow-xs text-[11px] font-medium text-slate-600">
+              <div className="absolute top-0 right-4 z-20 flex items-center bg-white/95 backdrop-blur-xs border border-slate-200/80 rounded-full p-1 shadow-xs text-[11px] font-medium text-slate-600">
                 <button
                   onClick={() => setActiveVisualMode("neural")}
-                  className={`px-3 py-1 rounded-full transition-all ${
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                     activeVisualMode === "neural" ? "bg-indigo-50 text-indigo-600 font-semibold" : "hover:text-slate-900"
                   }`}
                 >
@@ -198,7 +198,7 @@ export default function HomePage() {
                 </button>
                 <button
                   onClick={() => setActiveVisualMode("3d")}
-                  className={`px-3 py-1 rounded-full transition-all ${
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                     activeVisualMode === "3d" ? "bg-indigo-50 text-indigo-600 font-semibold" : "hover:text-slate-900"
                   }`}
                 >
@@ -211,7 +211,7 @@ export default function HomePage() {
                   {/* Glowing Concentric Halo Rings */}
                   <div className="absolute w-[360px] h-[360px] rounded-full bg-gradient-to-tr from-blue-400/15 via-indigo-500/20 to-purple-400/15 blur-2xl animate-soft-pulse pointer-events-none"></div>
                   
-                  <div className="relative w-[340px] h-[340px] rounded-full border border-indigo-100 bg-white/70 backdrop-blur-md shadow-[0_8px_32px_rgba(79,70,229,0.08)] flex items-center justify-center p-6 group">
+                  <div className="relative w-[340px] h-[340px] rounded-full border border-indigo-100 bg-white/80 backdrop-blur-md shadow-[0_8px_32px_rgba(79,70,229,0.08)] flex items-center justify-center p-6 group">
                     
                     {/* Concentric subtle circular rings */}
                     <div className="absolute inset-4 rounded-full border border-dashed border-indigo-200/50 animate-[spin_60s_linear_infinite]"></div>
@@ -285,7 +285,7 @@ export default function HomePage() {
       </section>
 
       {/* 4 Feature Highlight Cards matching Image 1 */}
-      <section className="py-12 bg-white border-b border-slate-100">
+      <section className="py-12 border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {highlightCards.map((card) => {
@@ -324,7 +324,7 @@ export default function HomePage() {
       </section>
 
       {/* The Research Workflow (6-step timeline) matching Image 1 */}
-      <section className="py-16 bg-[#FAFAFD] border-b border-slate-100">
+      <section className="py-16 border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
@@ -344,7 +344,7 @@ export default function HomePage() {
               {researchWorkflow.map((item) => (
                 <div 
                   key={item.step} 
-                  className="bg-white border border-slate-100 rounded-2xl p-4 text-center shadow-xs hover:shadow-sm transition-all"
+                  className="clean-card-flat p-4 text-center hover:shadow-sm transition-all"
                 >
                   <div className="w-9 h-9 mx-auto rounded-full bg-indigo-50 border-2 border-white shadow-xs text-indigo-600 font-bold text-xs flex items-center justify-center mb-3">
                     {item.step}
@@ -364,7 +364,7 @@ export default function HomePage() {
       </section>
 
       {/* 4 Diagnostic Classes Grid */}
-      <section className="py-16 bg-white border-b border-slate-100">
+      <section className="py-16 border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -413,9 +413,9 @@ export default function HomePage() {
       </section>
 
       {/* Scientific Transparency Callout */}
-      <section className="py-16 bg-[#FAFAFD]">
+      <section className="py-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50/90 border border-indigo-100 text-indigo-700 text-xs font-semibold backdrop-blur-xs">
             <Database className="w-3.5 h-3.5" />
             <span>Zero Synthetic Data Policy</span>
           </div>
@@ -439,7 +439,7 @@ export default function HomePage() {
 
             <Link
               href="/datasets"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium text-sm transition-all shadow-xs"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/90 backdrop-blur-xs border border-slate-200 text-slate-700 hover:bg-white font-medium text-sm transition-all shadow-xs"
             >
               <Database className="w-4 h-4 text-indigo-600" />
               <span>Inspect Dataset Transparency</span>

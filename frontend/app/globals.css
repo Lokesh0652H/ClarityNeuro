@@ -48,31 +48,40 @@ body {
   font-family: var(--font-sans, "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
 }
 
-/* Subtle scientific grid background pattern matching the reference image */
+/* Global Delicate Clinical Grid Background matching Image 2 */
 .bg-grid-clean {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(226, 232, 240, 0.45) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(226, 232, 240, 0.45) 1px, transparent 1px);
+    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
 }
 
-/* Premium Light UI Card matching the reference screenshots */
+/* Ambient Radial Glow for High-End AI Research Aesthetic */
+.ambient-glow {
+  background-image: radial-gradient(ellipse 90% 60% at 50% -15%, rgba(79, 70, 229, 0.08), transparent 75%);
+}
+
+/* Premium Light UI Cards */
 .clean-card {
-  background-color: #FFFFFF;
-  border: 1px solid #E9EEF5;
-  border-radius: 18px;
-  box-shadow: 0 2px 14px -3px rgba(15, 23, 42, 0.04), 0 1px 3px -1px rgba(15, 23, 42, 0.03);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 20px;
+  box-shadow: 0 2px 14px -3px rgba(15, 23, 42, 0.04), 0 1px 3px -1px rgba(15, 23, 42, 0.02);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .clean-card:hover {
-  box-shadow: 0 12px 30px -6px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 14px 34px -8px rgba(15, 23, 42, 0.08), 0 4px 14px -2px rgba(15, 23, 42, 0.03);
+  transform: translateY(-2px);
 }
 
 .clean-card-flat {
-  background-color: #FFFFFF;
-  border: 1px solid #E9EEF5;
-  border-radius: 18px;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 20px;
   box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03);
 }
 
@@ -95,18 +104,18 @@ body {
   background: #94A3B8;
 }
 
-/* Smooth pulse animation for live status */
+/* Smooth pulse animation */
 @keyframes soft-pulse {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
   50% {
-    opacity: 0.75;
-    transform: scale(1.08);
+    opacity: 0.8;
+    transform: scale(1.06);
   }
 }
 
 .animate-soft-pulse {
-  animation: soft-pulse 2.5s infinite ease-in-out;
+  animation: soft-pulse 3s infinite ease-in-out;
 }

@@ -86,7 +86,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAFD] text-[#0F172A] py-10">
+    <div className="min-h-screen text-[#0F172A] py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header & Filter Controls matching Image 1 Bottom Left */}
