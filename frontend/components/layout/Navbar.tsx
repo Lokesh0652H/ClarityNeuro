@@ -9,12 +9,8 @@ import {
   BarChart3, 
   Scale, 
   ShieldAlert, 
-  Database, 
-  BookOpen, 
   Menu, 
   X,
-  Sun,
-  Moon,
   ChevronDown
 } from "lucide-react";
 
@@ -22,42 +18,19 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [insightsDropdownOpen, setInsightsDropdownOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Synchronize theme with localStorage and documentElement
+  // Ensure clean light mode
   useEffect(() => {
     try {
-      const savedTheme = localStorage.getItem("clarityneuro_theme");
-      if (savedTheme === "dark") {
-        setTheme("dark");
-        document.documentElement.classList.add("dark");
-      } else {
-        setTheme("light");
-        document.documentElement.classList.remove("dark");
-      }
+      localStorage.removeItem("clarityneuro_theme");
+      document.documentElement.classList.remove("dark");
     } catch {
-      // Default to light
-      setTheme("light");
+      // ignore
     }
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    try {
-      localStorage.setItem("clarityneuro_theme", nextTheme);
-      if (nextTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    } catch (e) {
-      console.warn("Theme toggle localStorage notice:", e);
-    }
-  };
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -250,23 +223,8 @@ export function Navbar() {
             </Link>
           </nav>
 
-          {/* Right Action Icons: Operational Theme Toggle (Sun/Moon) + Avatar + CTA */}
+          {/* Right Action Icons: Avatar + Primary CTA */}
           <div className="hidden md:flex items-center gap-3">
-            {/* Functional Dark/Light Theme Toggle Button */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              title={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
-              aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
-              className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:border-indigo-300 transition-all cursor-pointer shadow-xs active:scale-95"
-            >
-              {theme === "light" ? (
-                <Sun className="w-4 h-4 text-amber-500 transition-transform duration-300 hover:rotate-45" />
-              ) : (
-                <Moon className="w-4 h-4 text-indigo-400 transition-transform duration-300 hover:-rotate-12" />
-              )}
-            </button>
-
             {/* User / Clinician Avatar Badge */}
             <div 
               title="Researcher Profile"
@@ -286,24 +244,13 @@ export function Navbar() {
 
           {/* Mobile menu trigger */}
           <div className="md:hidden flex items-center gap-2">
-            {/* Functional Theme Toggle on Mobile */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              title={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
-              aria-label="Toggle theme"
-              className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
-            >
-              {theme === "light" ? (
-                <Sun className="w-4 h-4 text-amber-500" />
-              ) : (
-                <Moon className="w-4 h-4 text-indigo-400" />
-              )}
-            </button>
+            <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-semibold text-xs flex items-center justify-center">
+              L
+            </div>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
               aria-label="Toggle navigation"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
