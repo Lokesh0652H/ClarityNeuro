@@ -1,38 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-canvas: #FAFAFD;
+  --color-card-bg: #FFFFFF;
+  --color-border-subtle: #E8EEF5;
+  --color-brand-blue: #2563EB;
+  --color-brand-indigo: #4F46E5;
+  --color-brand-violet: #7C3AED;
+  --color-brand-cyan: #06B6D4;
+}
+
 :root {
-  --background: #F7F9FC;
-  --foreground: #15243A;
+  --background: #FAFAFD;
+  --foreground: #0F172A;
   --card: #FFFFFF;
-  --card-foreground: #15243A;
-  --muted: #68758A;
-  --muted-light: #F0F4F8;
-  --primary-cyan: #11B9D4;
-  --primary-violet: #7867F5;
-  --border: #E5EAF1;
+  --card-foreground: #0F172A;
+  --muted: #64748B;
+  --muted-light: #F1F5F9;
+  --primary-blue: #2563EB;
+  --primary-indigo: #4F46E5;
+  --primary-violet: #7C3AED;
+  --border: #E8EEF5;
   --success: #10B981;
   --warning: #F59E0B;
   --error: #EF4444;
 }
 
 body {
-  background-color: #F7F9FC;
-  color: #15243A;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #FAFAFD;
+  color: #0F172A;
+  font-family: var(--font-sans, "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   min-height: 100vh;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar for clinical clean aesthetic */
+.font-serif {
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+}
+
+.font-sans {
+  font-family: var(--font-sans, "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+/* Subtle scientific grid background pattern matching the reference image */
+.bg-grid-clean {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.45) 1px, transparent 1px);
+}
+
+/* Premium Light UI Card matching the reference screenshots */
+.clean-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E9EEF5;
+  border-radius: 18px;
+  box-shadow: 0 2px 14px -3px rgba(15, 23, 42, 0.04), 0 1px 3px -1px rgba(15, 23, 42, 0.03);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clean-card:hover {
+  box-shadow: 0 12px 30px -6px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+.clean-card-flat {
+  background-color: #FFFFFF;
+  border: 1px solid #E9EEF5;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03);
+}
+
+/* Custom scrollbar for clean clinical UI */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #F8FAFC;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -44,22 +95,18 @@ body {
   background: #94A3B8;
 }
 
-/* Scientific grid background pattern */
-.bg-grid-pattern {
-  background-size: 24px 24px;
-  background-image: 
-    linear-gradient(to right, rgba(229, 234, 241, 0.6) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(229, 234, 241, 0.6) 1px, transparent 1px);
+/* Smooth pulse animation for live status */
+@keyframes soft-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
 }
 
-.clinical-card {
-  background-color: #FFFFFF;
-  border: 1px solid #E5EAF1;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgba(21, 36, 58, 0.04), 0 1px 2px -1px rgba(21, 36, 58, 0.04);
-  transition: all 0.2s ease-in-out;
-}
-
-.clinical-card:hover {
-  box-shadow: 0 4px 12px 0 rgba(21, 36, 58, 0.08);
+.animate-soft-pulse {
+  animation: soft-pulse 2.5s infinite ease-in-out;
 }

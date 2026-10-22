@@ -8,7 +8,6 @@ import {
   ArrowRight, 
   CheckCircle2, 
   AlertTriangle, 
-  HelpCircle, 
   Code2, 
   Activity,
   Sliders,
@@ -40,123 +39,125 @@ export default function ExplainabilityPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] py-10">
+    <div className="min-h-screen bg-[#FAFAFD] text-[#0F172A] py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#11B9D4] mb-2">
-            <Sparkles className="w-4 h-4" />
-            <span>Explainable AI (XAI) Deep Dive</span>
-          </div>
-          <h1 className="text-3xl font-extrabold text-[#15243A] tracking-tight">
+        <div className="mb-8">
+          <span className="text-[11px] font-bold tracking-wider uppercase text-indigo-600">
+            EXPLAINABLE AI (XAI)
+          </span>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] mt-1 tracking-tight">
             Grad-CAM++ Feature Attribution Methodology
           </h1>
-          <p className="text-sm text-[#68758A] mt-1 max-w-3xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
             NeuroScan XAI utilizes genuine Gradient-Weighted Class Activation Mapping++ (Grad-CAM++) computed on the final convolutional features of EfficientNet-B0 to provide pixel-level diagnostic interpretability.
           </p>
         </div>
 
         {/* Mathematical Foundation Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           
           {/* Card 1: Mathematical Formulation */}
-          <div className="clinical-card p-6 space-y-4">
-            <div className="flex items-center gap-2 text-[#11B9D4] font-bold text-sm">
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs">
               <Code2 className="w-4 h-4" />
               <span>Higher-Order Gradient Weighting</span>
             </div>
-            <h3 className="text-lg font-bold text-[#15243A]">
+            <h3 className="font-serif text-lg font-bold text-slate-900">
               Mathematical Formulation of Grad-CAM++
             </h3>
-            <p className="text-xs text-[#68758A] leading-relaxed">
-              Standard Grad-CAM computes uniform spatial weights by global average pooling first derivatives. Grad-CAM++ derives pixel-wise weighting coefficients using second- and third-order partial gradients of the target class score <code className="bg-[#F0F4F8] px-1 py-0.5 rounded text-[#15243A] font-mono">Y^c</code> with respect to activation map <code className="bg-[#F0F4F8] px-1 py-0.5 rounded text-[#15243A] font-mono">A^k</code>:
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Standard Grad-CAM computes uniform spatial weights by global average pooling first derivatives. Grad-CAM++ derives pixel-wise weighting coefficients using second- and third-order partial gradients of the target class score <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-900 font-mono text-[11px]">Y^c</code> with respect to activation map <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-900 font-mono text-[11px]">A^k</code>:
             </p>
 
             {/* Formula Block */}
-            <div className="p-4 rounded-xl bg-[#F0F4F8] border border-[#E5EAF1] font-mono text-xs text-[#15243A] space-y-2 overflow-x-auto">
-              <div className="font-semibold text-[#7867F5]">Weight Coefficient Formulation:</div>
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 font-mono text-xs text-slate-900 space-y-2 overflow-x-auto">
+              <div className="font-semibold text-indigo-600">Weight Coefficient Formulation:</div>
               <div>α_ijk^c = [ ∂²Y^c / ∂(A_ij^k)² ] / [ 2·∂²Y^c/∂(A_ij^k)² + Σ_ab A_ab^k · ∂³Y^c/∂(A_ab^k)³ ]</div>
-              <div className="pt-2 font-semibold text-[#11B9D4]">Class Saliency Map:</div>
+              <div className="pt-2 font-semibold text-blue-600">Class Saliency Map:</div>
               <div>L^c = ReLU( Σ_k [ Σ_ij (α_ijk^c · ReLU(∂Y^c / ∂A_ij^k)) ] · A^k )</div>
             </div>
 
-            <p className="text-xs text-[#68758A]">
-              The resulting tensor is rectified with <strong className="text-[#15243A]">ReLU</strong> to retain only positive evidence supporting the target class, and bilinearly interpolated back to native MRI dimensions (224×224).
+            <p className="text-xs text-slate-500">
+              The resulting tensor is rectified with <strong className="text-slate-900">ReLU</strong> to retain only positive evidence supporting the target class, and bilinearly interpolated back to native MRI dimensions (224×224).
             </p>
           </div>
 
           {/* Card 2: Neural Architecture Mapping */}
-          <div className="clinical-card p-6 space-y-4">
-            <div className="flex items-center gap-2 text-[#7867F5] font-bold text-sm">
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2 text-purple-600 font-bold text-xs">
               <Layers className="w-4 h-4" />
               <span>Feature Extraction Backbone</span>
             </div>
-            <h3 className="text-lg font-bold text-[#15243A]">
+            <h3 className="font-serif text-lg font-bold text-slate-900">
               EfficientNet-B0 Layer Attributions
             </h3>
-            <p className="text-xs text-[#68758A] leading-relaxed">
-              Gradient hooks are attached to <code className="bg-[#F0F4F8] px-1 py-0.5 rounded text-[#15243A] font-mono">model.features[-1]</code> (the final MBConv block with 1,280 channels and 7×7 spatial resolution). This layer captures the highest-level semantic abstractions:
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Gradient hooks are attached to <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-900 font-mono text-[11px]">model.features[-1]</code> (the final MBConv block with 1,280 channels and 7×7 spatial resolution). This layer captures the highest-level semantic abstractions:
             </p>
 
-            <div className="space-y-2.5 text-xs">
-              <div className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E5EAF1] flex items-center justify-between">
+            <div className="space-y-2 pt-2 text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-[#15243A]">Low-Level Blocks (features[0..2]):</span>
-                  <span className="text-[#68758A] block text-[11px]">Edges, cranial bone contours, cerebrospinal fluid interfaces</span>
+                  <strong className="text-slate-900 block">Conv Head Hook (features[-1])</strong>
+                  <span className="text-[11px] text-slate-500">1,280 channels × 7 × 7 feature volume</span>
                 </div>
-                <span className="text-[10px] font-mono text-[#68758A]">112×112 / 56×56</span>
+                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                  Active Hook
+                </span>
               </div>
 
-              <div className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E5EAF1] flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-[#15243A]">Mid-Level Blocks (features[3..5]):</span>
-                  <span className="text-[#68758A] block text-[11px]">Sulcal anatomy, ventricles, parenchymal textures</span>
+                  <strong className="text-slate-900 block">Quadrant Spatial Localization</strong>
+                  <span className="text-[11px] text-slate-500">Right/Left frontal, temporal, parietal, and occipital lobes</span>
                 </div>
-                <span className="text-[10px] font-mono text-[#68758A]">28×28 / 14×14</span>
+                <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                  4 Quadrants
+                </span>
               </div>
 
-              <div className="p-3 rounded-lg bg-[#11B9D4]/10 border border-[#11B9D4]/20 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-[#11B9D4]">Target Convolutional Layer (features[8]):</span>
-                  <span className="text-[#15243A] block text-[11px]">Pathological lesion morphology, contrast enhancement, mass effect</span>
+                  <strong className="text-slate-900 block">Jet Colormap Normalization</strong>
+                  <span className="text-[11px] text-slate-500">0.0 (blue background) to 1.0 (red peak tumor core)</span>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-[#11B9D4]">7×7 / 1,280 ch</span>
+                <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                  Normalized
+                </span>
               </div>
             </div>
           </div>
 
         </div>
 
-        {/* Algorithmic Comparison: Standard Grad-CAM vs Grad-CAM++ */}
-        <div className="clinical-card p-8 mb-12">
-          <div className="mb-6">
-            <h3 className="text-xl font-bold text-[#15243A]">
-              Standard Grad-CAM vs. Grad-CAM++ in Neurological MRI
+        {/* Comparison Table: Grad-CAM vs Grad-CAM++ */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs mb-8">
+          <div className="mb-4">
+            <h3 className="font-serif text-base font-bold text-slate-900">
+              Comparative Analysis: Grad-CAM vs. Grad-CAM++
             </h3>
-            <p className="text-xs text-[#68758A] mt-1">
-              Why higher-order gradient formulations are necessary for brain tumor identification.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Empirical advantages of higher-order derivative weighting in brain tumor neuroimaging.
             </p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-[#E5EAF1] text-[#68758A]">
-                  <th className="pb-3 font-semibold uppercase tracking-wider">Evaluation Dimension</th>
-                  <th className="pb-3 font-semibold uppercase tracking-wider">Standard Grad-CAM</th>
-                  <th className="pb-3 font-semibold uppercase tracking-wider text-[#11B9D4]">NeuroScan Grad-CAM++</th>
+                <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400">
+                  <th className="pb-3">Evaluation Axis</th>
+                  <th className="pb-3 text-slate-500">Standard Grad-CAM (Selvaraju et al.)</th>
+                  <th className="pb-3 text-indigo-600 font-bold">Grad-CAM++ (NeuroScan XAI)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5EAF1]">
+              <tbody className="divide-y divide-slate-50 font-medium">
                 {comparisonFeatures.map((row) => (
-                  <tr key={row.feature} className="hover:bg-[#F7F9FC]">
-                    <td className="py-3.5 font-bold text-[#15243A]">{row.feature}</td>
-                    <td className="py-3.5 text-[#68758A]">{row.standard}</td>
-                    <td className="py-3.5 font-semibold text-[#15243A] flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                      <span>{row.plusPlus}</span>
-                    </td>
+                  <tr key={row.feature} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 font-bold text-slate-900">{row.feature}</td>
+                    <td className="py-3.5 text-slate-500">{row.standard}</td>
+                    <td className="py-3.5 text-indigo-700 font-semibold">{row.plusPlus}</td>
                   </tr>
                 ))}
               </tbody>
@@ -164,61 +165,15 @@ export default function ExplainabilityPage() {
           </div>
         </div>
 
-        {/* Quadrant Localization & Failure Modes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          
-          {/* Quadrant Localization */}
-          <div className="clinical-card p-6 space-y-3">
-            <div className="flex items-center gap-2 text-[#10B981] font-bold text-sm">
-              <Eye className="w-4 h-4" />
-              <span>Quadrant Attribution Metrics</span>
-            </div>
-            <h4 className="text-base font-bold text-[#15243A]">
-              Automated Spatial Quadrant Partitioning
-            </h4>
-            <p className="text-xs text-[#68758A] leading-relaxed">
-              Every Grad-CAM++ heatmap is partitioned into four anatomical quadrants (Top-Right, Top-Left, Bottom-Left, Bottom-Right). This quantifies attribution concentration:
-            </p>
-            <ul className="text-xs text-[#68758A] space-y-2 list-disc list-inside">
-              <li>Identifies lateralization (Right vs. Left hemisphere mass effect)</li>
-              <li>Detects supratentorial vs. infratentorial/sellar concentrations</li>
-              <li>Flags abnormal attributions focused on cranial periphery or background</li>
-            </ul>
-          </div>
-
-          {/* Failure Modes & Disclaimers */}
-          <div className="clinical-card p-6 space-y-3 border-l-4 border-[#F59E0B]">
-            <div className="flex items-center gap-2 text-[#F59E0B] font-bold text-sm">
-              <AlertTriangle className="w-4 h-4" />
-              <span>Known Technical Limitations</span>
-            </div>
-            <h4 className="text-base font-bold text-[#15243A]">
-              Attribution Interpretation Disclaimers
-            </h4>
-            <ul className="text-xs text-[#68758A] space-y-2 list-disc list-inside leading-relaxed">
-              <li>
-                <strong className="text-[#15243A]">Not a Segmentation Mask:</strong> Saliency maps highlight features driving classification score, not microscopic tumor margin boundaries.
-              </li>
-              <li>
-                <strong className="text-[#15243A]">Low-Contrast Scans:</strong> Scans with severe attenuation or poor T1-contrast enhancement can exhibit diffuse heatmaps.
-              </li>
-              <li>
-                <strong className="text-[#15243A]">Resolution Constraint:</strong> Feature maps at 7×7 are bilinearly upsampled to 224×224; sub-millimeter anatomical detail is constrained.
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
-        {/* CTA to live workspace */}
-        <div className="text-center py-6">
+        {/* Action Link */}
+        <div className="text-center pt-4">
           <Link
             href="/analyze"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#11B9D4] to-[#7867F5] text-white font-semibold text-sm shadow-sm hover:opacity-95 transition-opacity"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white font-medium text-xs shadow-sm hover:shadow-md transition-all cursor-pointer"
           >
             <Brain className="w-4 h-4" />
-            <span>Test Grad-CAM++ in MRI Workspace</span>
-            <ArrowRight className="w-4 h-4 ml-1" />
+            <span>Test Live Grad-CAM++ on Real Scans</span>
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 

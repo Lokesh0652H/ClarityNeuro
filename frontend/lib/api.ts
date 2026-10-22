@@ -39,6 +39,7 @@ export interface ExplainabilityResponseData {
     bottom_left: number;
     bottom_right: number;
   };
+  localization_notes?: string;
 }
 
 export interface UncertaintyResponseData {

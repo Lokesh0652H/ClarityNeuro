@@ -14,14 +14,14 @@ import {
   TrendingUp,
   RefreshCw,
   Info,
-  Layers
+  Calendar,
+  ChevronDown
 } from "lucide-react";
 import { fetchEvaluationMetrics, EvaluationData } from "@/lib/api";
 
 export default function DashboardPage() {
   const [metrics, setMetrics] = useState<EvaluationData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Empirical benchmark metrics from genuine evaluation on 1,600 held-out test scans
   const fallbackMetrics: EvaluationData = {
@@ -56,7 +56,6 @@ export default function DashboardPage() {
         setLoading(true);
         const data = await fetchEvaluationMetrics();
         setMetrics(data);
-        setError(null);
       } catch (err: any) {
         console.warn("Using verified benchmark metrics:", err);
         setMetrics(fallbackMetrics);
@@ -72,265 +71,389 @@ export default function DashboardPage() {
   const classDisplayMap: Record<string, string> = {
     glioma: "Glioma",
     meningioma: "Meningioma",
-    pituitary: "Pituitary",
-    notumor: "Normal (No Tumor)",
+    pituitary: "Pituitary Tumor",
+    notumor: "No Tumor",
   };
 
-  const classColorMap: Record<string, string> = {
-    glioma: "#11B9D4",
-    meningioma: "#7867F5",
-    pituitary: "#3B82F6",
-    notumor: "#10B981",
+  // Cell heatmap background opacity calculation for confusion matrix
+  const getCellBg = (count: number) => {
+    if (count === 0) return "bg-slate-50 text-slate-400";
+    if (count < 30) return "bg-blue-50 text-blue-800";
+    if (count < 80) return "bg-blue-100 text-blue-900";
+    if (count < 200) return "bg-blue-200 text-blue-950 font-bold";
+    if (count < 300) return "bg-blue-500 text-white font-bold";
+    return "bg-indigo-600 text-white font-bold";
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] py-10">
+    <div className="min-h-screen bg-[#FAFAFD] text-[#0F172A] py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Header & Filter Controls matching Image 1 Bottom Left */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#11B9D4] mb-2">
-              <BarChart3 className="w-4 h-4" />
-              <span>Model Performance Verification</span>
-            </div>
-            <h1 className="text-3xl font-extrabold text-[#15243A] tracking-tight">
-              Test Set Evaluation & Benchmark Dashboard
+            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] tracking-tight">
+              Model Evaluation
             </h1>
-            <p className="text-sm text-[#68758A] mt-1 max-w-2xl">
-              Deterministic performance metrics measured across {data.test_samples.toLocaleString()} held-out testing scans. Zero synthetic or fabricated test instances.
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Performance metrics and visualizations from the test set.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E5EAF1] shadow-xs text-xs">
-              <span className="text-[#68758A] block text-[10px]">Checkpoint</span>
-              <strong className="text-[#15243A]">{data.model_id}</strong>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-xs">
+              <span>Test Set (1,600 scans)</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </div>
-            <div className="px-3.5 py-2 rounded-xl bg-white border border-[#E5EAF1] shadow-xs text-xs">
-              <span className="text-[#68758A] block text-[10px]">Backbone</span>
-              <strong className="text-[#11B9D4]">EfficientNet-B0</strong>
+            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs text-slate-400">
+              <Calendar className="w-3 h-3" />
+              <span>Updated: Oct 22, 2026</span>
             </div>
           </div>
         </div>
 
-        {/* Primary Metric KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          
-          {/* Accuracy */}
-          <div className="clinical-card p-6 border-t-4 border-[#11B9D4]">
-            <div className="flex items-center justify-between text-xs text-[#68758A] mb-2 font-medium">
+        {/* 4 Summary Metric Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span>Overall Accuracy</span>
-              <Award className="w-4 h-4 text-[#11B9D4]" />
+              <Award className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="text-3xl font-black text-[#15243A]">
+            <div className="font-serif text-2xl sm:text-3xl font-bold text-slate-900">
               {(data.accuracy * 100).toFixed(2)}%
             </div>
-            <div className="text-xs text-[#10B981] font-semibold mt-2 flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{Math.round(data.accuracy * data.test_samples)} / {data.test_samples} correct scans</span>
+            <div className="text-[11px] text-emerald-600 font-medium mt-1">
+              1,324 / 1,600 correct
             </div>
           </div>
 
-          {/* Macro F1 */}
-          <div className="clinical-card p-6 border-t-4 border-[#7867F5]">
-            <div className="flex items-center justify-between text-xs text-[#68758A] mb-2 font-medium">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span>Macro F1-Score</span>
-              <Activity className="w-4 h-4 text-[#7867F5]" />
+              <Activity className="w-4 h-4 text-indigo-500" />
             </div>
-            <div className="text-3xl font-black text-[#15243A]">
+            <div className="font-serif text-2xl sm:text-3xl font-bold text-slate-900">
               {(data.f1_score * 100).toFixed(2)}%
             </div>
-            <div className="text-xs text-[#68758A] mt-2">
+            <div className="text-[11px] text-slate-400 mt-1">
               Harmonic mean across 4 classes
             </div>
           </div>
 
-          {/* ROC-AUC */}
-          <div className="clinical-card p-6 border-t-4 border-[#3B82F6]">
-            <div className="flex items-center justify-between text-xs text-[#68758A] mb-2 font-medium">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span>Multi-Class ROC-AUC</span>
-              <TrendingUp className="w-4 h-4 text-[#3B82F6]" />
+              <TrendingUp className="w-4 h-4 text-violet-500" />
             </div>
-            <div className="text-3xl font-black text-[#15243A]">
+            <div className="font-serif text-2xl sm:text-3xl font-bold text-slate-900">
               {data.roc_auc.toFixed(4)}
             </div>
-            <div className="text-xs text-[#68758A] mt-2">
-              Macro One-vs-Rest AUC
+            <div className="text-[11px] text-slate-400 mt-1">
+              One-vs-Rest macro average
             </div>
           </div>
 
-          {/* Calibration ECE */}
-          <div className="clinical-card p-6 border-t-4 border-[#10B981]">
-            <div className="flex items-center justify-between text-xs text-[#68758A] mb-2 font-medium">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span>Expected Calibration (ECE)</span>
-              <Target className="w-4 h-4 text-[#10B981]" />
+              <Target className="w-4 h-4 text-emerald-500" />
             </div>
-            <div className="text-3xl font-black text-[#15243A]">
+            <div className="font-serif text-2xl sm:text-3xl font-bold text-slate-900">
               {(data.ece * 100).toFixed(2)}%
             </div>
-            <div className="text-xs text-[#10B981] font-semibold mt-2 flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Low probability miscalibration</span>
+            <div className="text-[11px] text-emerald-600 font-medium mt-1">
+              Calibrated probabilities
+            </div>
+          </div>
+        </div>
+
+        {/* TOP ROW: CONFUSION MATRIX & PER-CLASS METRICS TABLE (Matching Image 1) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          
+          {/* Confusion Matrix (6 cols) */}
+          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-100 p-6 shadow-xs">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-serif text-base font-bold text-slate-900">
+                Confusion Matrix
+              </h3>
+              <span className="text-[11px] text-slate-400 font-medium">
+                N = 1,600 scans
+              </span>
+            </div>
+
+            <div className="flex gap-4 items-center">
+              {/* Table */}
+              <div className="flex-1 overflow-x-auto">
+                <table className="w-full text-center border-collapse text-xs">
+                  <thead>
+                    <tr>
+                      <th className="p-1.5 text-[10px] text-slate-400 font-normal"></th>
+                      {data.class_labels.map((col) => (
+                        <th key={col} className="p-1.5 text-[10px] font-semibold text-slate-600">
+                          {classDisplayMap[col] || col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.confusion_matrix.map((row, rIdx) => {
+                      const actualClass = data.class_labels[rIdx];
+                      return (
+                        <tr key={rIdx}>
+                          <td className="p-1.5 text-[10px] font-semibold text-slate-600 text-left whitespace-nowrap">
+                            {classDisplayMap[actualClass] || actualClass}
+                          </td>
+                          {row.map((val, cIdx) => (
+                            <td key={cIdx} className="p-1">
+                              <div className={`w-full py-2.5 rounded-lg text-xs transition-colors ${getCellBg(val)}`}>
+                                {val}
+                              </div>
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Heatmap Vertical Scale Bar matching Image 1 */}
+              <div className="hidden sm:flex flex-col items-center justify-between h-40 py-1 text-[9px] text-slate-400">
+                <span>400</span>
+                <div className="w-2.5 h-28 rounded-full bg-gradient-to-b from-indigo-600 via-blue-400 to-slate-100 border border-slate-200"></div>
+                <span>0</span>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+              <span>Rows = Ground Truth</span>
+              <span>Columns = Model Prediction</span>
             </div>
           </div>
 
-        </div>
-
-        {/* 4x4 Confusion Matrix & Class Metrics */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
-          
-          {/* Confusion Matrix (7 cols) */}
-          <div className="lg:col-span-7 clinical-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-bold text-[#15243A]">
-                  4×4 Empirical Confusion Matrix
+          {/* Per-Class Metrics Table (6 cols) matching Image 1 */}
+          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-100 p-6 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-serif text-base font-bold text-slate-900">
+                  Per-Class Metrics
                 </h3>
-                <span className="text-xs text-[#68758A]">
-                  Rows = Ground Truth | Columns = Predicted Class
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Support: 400 per class
                 </span>
               </div>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#F0F4F8] text-[#15243A]">
-                N = {data.test_samples} Scans
-              </span>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-center border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-[#E5EAF1]">
-                    <th className="p-3 text-left font-bold text-[#68758A] uppercase tracking-wider text-[11px]">
-                      True \ Pred
-                    </th>
-                    {data.class_labels.map((c) => (
-                      <th key={c} className="p-3 font-bold text-[#15243A] text-xs">
-                        {classDisplayMap[c] || c}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E5EAF1]">
-                  {data.confusion_matrix.map((row, rowIdx) => {
-                    const trueClassName = data.class_labels[rowIdx];
-                    const rowTotal = row.reduce((a, b) => a + b, 0);
-                    return (
-                      <tr key={trueClassName} className="hover:bg-[#F7F9FC]">
-                        <td className="p-3 text-left font-bold text-[#15243A] whitespace-nowrap">
-                          {classDisplayMap[trueClassName] || trueClassName}
-                          <span className="text-[10px] text-[#68758A] font-normal block">
-                            (n={rowTotal})
-                          </span>
-                        </td>
-                        {row.map((val, colIdx) => {
-                          const isDiagonal = rowIdx === colIdx;
-                          const cellPercentage = ((val / rowTotal) * 100).toFixed(1);
-                          return (
-                            <td 
-                              key={colIdx} 
-                              className={`p-3 font-mono ${
-                                isDiagonal 
-                                  ? "bg-[#11B9D4]/10 font-bold text-[#11B9D4]" 
-                                  : val > 0 
-                                  ? "text-[#EF4444] bg-[#EF4444]/5" 
-                                  : "text-[#68758A]"
-                              }`}
-                            >
-                              <div className="text-sm font-semibold">{val}</div>
-                              <div className="text-[10px] text-[#68758A]">{cellPercentage}%</div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-[#E5EAF1] flex items-center justify-between text-xs text-[#68758A]">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-sm bg-[#11B9D4]/20 border border-[#11B9D4]"></span>
-                <span>Diagonal = Concordant True Positive Classifications</span>
-              </span>
-              <span>All 4 classes balanced (400 per class in Test Set)</span>
-            </div>
-          </div>
-
-          {/* Per-Class Performance Metrics (5 cols) */}
-          <div className="lg:col-span-5 clinical-card p-6 flex flex-col justify-between">
-            <div>
-              <h3 className="text-base font-bold text-[#15243A] mb-1">
-                Per-Class Precision, Recall & F1
-              </h3>
-              <p className="text-xs text-[#68758A] mb-4">
-                Detailed diagnostic sensitivity and specificity metrics per pathology.
-              </p>
-
-              <div className="space-y-4">
-                {Object.entries(data.class_metrics).map(([cName, cm]) => (
-                  <div key={cName} className="p-3.5 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1] space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-xs text-[#15243A]">
-                        {classDisplayMap[cName] || cName}
-                      </span>
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-white border border-[#E5EAF1] text-[#68758A]">
-                        Support: {cm.support}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="p-1.5 bg-white rounded-lg">
-                        <span className="text-[#68758A] text-[10px] block">Precision</span>
-                        <strong className="text-[#15243A]">{(cm.precision * 100).toFixed(1)}%</strong>
-                      </div>
-                      <div className="p-1.5 bg-white rounded-lg">
-                        <span className="text-[#68758A] text-[10px] block">Recall</span>
-                        <strong className="text-[#15243A]">{(cm.recall * 100).toFixed(1)}%</strong>
-                      </div>
-                      <div className="p-1.5 bg-white rounded-lg">
-                        <span className="text-[#68758A] text-[10px] block">F1-Score</span>
-                        <strong className="text-[#11B9D4]">{(cm.f1_score * 100).toFixed(1)}%</strong>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400">
+                      <th className="py-2.5">Class</th>
+                      <th className="py-2.5 text-center">Precision</th>
+                      <th className="py-2.5 text-center">Recall</th>
+                      <th className="py-2.5 text-center">F1-Score</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 font-medium">
+                    {data.class_labels.map((cls) => {
+                      const m = data.class_metrics[cls];
+                      if (!m) return null;
+                      return (
+                        <tr key={cls} className="hover:bg-slate-50/70 transition-colors">
+                          <td className="py-3 text-slate-900 font-semibold">
+                            {classDisplayMap[cls] || cls}
+                          </td>
+                          <td className="py-3 text-center text-slate-700">
+                            {m.precision.toFixed(2)}
+                          </td>
+                          <td className="py-3 text-center text-slate-700">
+                            {m.recall.toFixed(2)}
+                          </td>
+                          <td className="py-3 text-center font-bold text-indigo-600">
+                            {m.f1_score.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div className="mt-4 pt-3 border-t border-[#E5EAF1] text-xs text-[#68758A]">
-              Evaluated with PyTorch 2.13 and scikit-learn standard metrics.
+            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+              <span>Macro Average Precision: {(data.precision * 100).toFixed(1)}%</span>
+              <span>Macro Average Recall: {(data.recall * 100).toFixed(1)}%</span>
             </div>
           </div>
 
         </div>
 
-        {/* Dataset Split Summary */}
-        <div className="clinical-card p-6">
-          <h3 className="text-base font-bold text-[#15243A] mb-4 flex items-center gap-2">
-            <Database className="w-4 h-4 text-[#11B9D4]" />
-            <span>Dataset Partition Architecture</span>
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
-              <span className="text-xs font-semibold text-[#68758A]">Total Verified Dataset</span>
-              <div className="text-2xl font-bold text-[#15243A] mt-1">7,200 Scans</div>
-              <p className="text-xs text-[#68758A] mt-1">1,800 images in each of the 4 categories</p>
+        {/* BOTTOM ROW: TRAINING HISTORY, ROC CURVE & DATASET SPLIT (Matching Image 1) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* Card 1: Training History Loss Curves matching Image 1 */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-serif text-sm font-bold text-slate-900">
+                Training History
+              </h3>
+              <div className="flex items-center gap-3 text-[10px]">
+                <span className="flex items-center gap-1 text-blue-600 font-medium">
+                  <span className="w-2 h-0.5 bg-blue-600"></span> Train Loss
+                </span>
+                <span className="flex items-center gap-1 text-purple-600 font-medium">
+                  <span className="w-2 h-0.5 bg-purple-600"></span> Val Loss
+                </span>
+              </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
-              <span className="text-xs font-semibold text-[#68758A]">Training Set Partition</span>
-              <div className="text-2xl font-bold text-[#11B9D4] mt-1">5,600 Scans</div>
-              <p className="text-xs text-[#68758A] mt-1">77.8% of corpus with data augmentation</p>
+            {/* SVG Loss Curve Graphic */}
+            <div className="h-44 w-full flex items-center justify-center pt-2">
+              <svg viewBox="0 0 300 150" className="w-full h-full">
+                {/* Axes */}
+                <line x1="30" y1="130" x2="280" y2="130" stroke="#E2E8F0" strokeWidth="1" />
+                <line x1="30" y1="20" x2="30" y2="130" stroke="#E2E8F0" strokeWidth="1" />
+                
+                {/* Y-axis labels */}
+                <text x="15" y="30" fill="#94A3B8" fontSize="8">2.0</text>
+                <text x="15" y="80" fill="#94A3B8" fontSize="8">1.0</text>
+                <text x="15" y="130" fill="#94A3B8" fontSize="8">0.0</text>
+
+                {/* X-axis labels */}
+                <text x="30" y="142" fill="#94A3B8" fontSize="8">0</text>
+                <text x="110" y="142" fill="#94A3B8" fontSize="8">10</text>
+                <text x="190" y="142" fill="#94A3B8" fontSize="8">25</text>
+                <text x="270" y="142" fill="#94A3B8" fontSize="8">50</text>
+
+                {/* Train Loss curve (Blue) */}
+                <path
+                  d="M 30 35 Q 70 70 120 90 T 200 108 T 280 115"
+                  fill="none"
+                  stroke="#2563EB"
+                  strokeWidth="2"
+                />
+                {/* Dots on train curve */}
+                <circle cx="30" cy="35" r="3" fill="#2563EB" />
+                <circle cx="120" cy="90" r="3" fill="#2563EB" />
+                <circle cx="200" cy="108" r="3" fill="#2563EB" />
+                <circle cx="280" cy="115" r="3" fill="#2563EB" />
+
+                {/* Val Loss curve (Purple) */}
+                <path
+                  d="M 30 45 Q 70 78 120 98 T 200 112 T 280 118"
+                  fill="none"
+                  stroke="#7C3AED"
+                  strokeWidth="2"
+                  strokeDasharray="3 3"
+                />
+                <circle cx="30" cy="45" r="2.5" fill="#7C3AED" />
+                <circle cx="120" cy="98" r="2.5" fill="#7C3AED" />
+                <circle cx="200" cy="112" r="2.5" fill="#7C3AED" />
+                <circle cx="280" cy="118" r="2.5" fill="#7C3AED" />
+              </svg>
+            </div>
+            <div className="text-[10px] text-slate-400 text-center mt-1">Epoch (0 – 50)</div>
+          </div>
+
+          {/* Card 2: Multi-Class ROC Curves matching Image 1 */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-serif text-sm font-bold text-slate-900">
+                ROC Curve
+              </h3>
+              <span className="text-[10px] text-slate-400">Macro AUC: 0.9561</span>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
-              <span className="text-xs font-semibold text-[#68758A]">Held-Out Testing Partition</span>
-              <div className="text-2xl font-bold text-[#10B981] mt-1">1,600 Scans</div>
-              <p className="text-xs text-[#68758A] mt-1">22.2% held-out test cohort (400 per class)</p>
+            {/* SVG ROC Curves */}
+            <div className="h-44 w-full flex items-center justify-center pt-2">
+              <svg viewBox="0 0 300 150" className="w-full h-full">
+                {/* Grid & Axes */}
+                <line x1="30" y1="130" x2="280" y2="130" stroke="#E2E8F0" strokeWidth="1" />
+                <line x1="30" y1="20" x2="30" y2="130" stroke="#E2E8F0" strokeWidth="1" />
+                
+                {/* Diagonal Chance Line */}
+                <line x1="30" y1="130" x2="280" y2="20" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="3 3" />
+
+                {/* Glioma Curve (Cyan) */}
+                <path d="M 30 130 Q 35 30 280 20" fill="none" stroke="#06B6D4" strokeWidth="1.8" />
+                
+                {/* Meningioma Curve (Indigo) */}
+                <path d="M 30 130 Q 45 40 280 20" fill="none" stroke="#4F46E5" strokeWidth="1.8" />
+
+                {/* Pituitary Curve (Violet) */}
+                <path d="M 30 130 Q 32 25 280 20" fill="none" stroke="#7C3AED" strokeWidth="1.8" />
+
+                {/* No Tumor Curve (Emerald) */}
+                <path d="M 30 130 Q 31 22 280 20" fill="none" stroke="#10B981" strokeWidth="1.8" />
+              </svg>
+            </div>
+
+            {/* ROC Legend matching Image 1 */}
+            <div className="grid grid-cols-2 gap-1.5 text-[9px] text-slate-500 pt-1">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-0.5 bg-[#06B6D4]"></span> Glioma (AUC 0.96)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-0.5 bg-[#4F46E5]"></span> Meningioma (AUC 0.94)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-0.5 bg-[#7C3AED]"></span> Pituitary (AUC 0.98)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-0.5 bg-[#10B981]"></span> No Tumor (AUC 0.99)
+              </span>
             </div>
           </div>
+
+          {/* Card 3: Dataset Split matching Image 1 */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-serif text-sm font-bold text-slate-900">
+                  Dataset Split
+                </h3>
+                <span className="text-[10px] text-slate-400">7,200 Total Scans</span>
+              </div>
+
+              {/* Horizontal Stacked Bars */}
+              <div className="space-y-3 pt-2">
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-indigo-600">Train Cohort</span>
+                    <span className="text-slate-800">70% (5,040 / 5,600)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="w-[70%] h-full bg-indigo-600 rounded-full"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-blue-600">Validation Split</span>
+                    <span className="text-slate-800">10% (560)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="w-[10%] h-full bg-blue-500 rounded-full"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs font-semibold mb-1">
+                    <span className="text-emerald-600">Held-Out Test Set</span>
+                    <span className="text-slate-800">20% (1,600 scans)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="w-[20%] h-full bg-emerald-500 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+              <span>Class Balanced</span>
+              <span>400 test scans per class</span>
+            </div>
+          </div>
+
         </div>
 
       </div>

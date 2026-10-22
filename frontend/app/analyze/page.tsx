@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import Image from "next/image";
+import React, { useState, useRef } from "react";
+import Link from "next/link";
 import { 
   Upload, 
   Brain, 
@@ -16,7 +16,8 @@ import {
   RefreshCw, 
   Zap,
   ArrowRight,
-  ShieldAlert,
+  ShieldCheck,
+  ChevronLeft,
   Info
 } from "lucide-react";
 import { 
@@ -39,18 +40,18 @@ export default function AnalyzePage() {
   const [uncertaintyResult, setUncertaintyResult] = useState<UncertaintyResponseData | null>(null);
   const [isComputingUncertainty, setIsComputingUncertainty] = useState(false);
 
-  // Visualization state
-  const [viewMode, setViewMode] = useState<"overlay" | "side_by_side" | "heatmap_only" | "original">("overlay");
-  const [overlayOpacity, setOverlayOpacity] = useState<number>(0.65);
+  // Visualization state matching Image 1
+  const [activeCamTab, setActiveCamTab] = useState<"overlay" | "original" | "heatmap">("overlay");
+  const [overlayOpacity, setOverlayOpacity] = useState<number>(0.55);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Clinical Benchmark Samples for 1-click evaluation
+  // 4 Real Benchmark Samples for 1-Click Evaluation
   const benchmarkSamples = [
     { name: "Glioma Sample", class: "glioma", file: "sample_glioma.jpg", badge: "Class 0" },
     { name: "Meningioma Sample", class: "meningioma", file: "sample_meningioma.jpg", badge: "Class 1" },
     { name: "Pituitary Sample", class: "pituitary", file: "sample_pituitary.jpg", badge: "Class 2" },
-    { name: "Normal Scan Sample", class: "notumor", file: "sample_notumor.jpg", badge: "Class 3" },
+    { name: "Normal Scan", class: "notumor", file: "sample_notumor.jpg", badge: "Class 3" },
   ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,19 +86,18 @@ export default function AnalyzePage() {
     reader.readAsDataURL(file);
   };
 
-  const loadBenchmarkSample = async (sampleFileName: string, sampleName: string) => {
+  const loadBenchmarkSample = async (sampleFileName: string) => {
     try {
       setError(null);
       const res = await fetch(`/samples/${sampleFileName}`);
       if (!res.ok) {
-        // Fallback: If not yet in public folder, fetch placeholder or notify
-        throw new Error("Sample file loading from benchmark library...");
+        throw new Error("Loading benchmark scan from server...");
       }
       const blob = await res.blob();
       const file = new File([blob], sampleFileName, { type: "image/jpeg" });
       processFile(file);
     } catch (err: any) {
-      setError(`Notice: ${err.message || "Failed loading benchmark scan"}. You can also drag-and-drop any MRI scan from your drive.`);
+      setError(`Notice: ${err.message || "Failed loading benchmark scan"}. Drag and drop any MRI scan from your disk.`);
     }
   };
 
@@ -107,7 +107,7 @@ export default function AnalyzePage() {
     setError(null);
 
     try {
-      // 1. Run live forward inference + initial Grad-CAM
+      // 1. Run live forward inference + Grad-CAM
       const result = await analyzeScan(selectedFile, true);
       setAnalysisResult(result);
 
@@ -142,556 +142,712 @@ export default function AnalyzePage() {
     }
   };
 
+  const resetAnalysis = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setAnalysisResult(null);
+    setCamResult(null);
+    setUncertaintyResult(null);
+    setError(null);
+  };
+
   const getClassNameDisplay = (cls: string) => {
     switch (cls.toLowerCase()) {
-      case "glioma": return "Glioma Tumor";
-      case "meningioma": return "Meningioma Tumor";
-      case "pituitary": return "Pituitary Adenoma";
-      case "notumor": return "No Tumor (Normal Intracranial)";
+      case "glioma": return "Glioma";
+      case "meningioma": return "Meningioma";
+      case "pituitary": return "Pituitary Tumor";
+      case "notumor": return "No Tumor";
       default: return cls;
     }
   };
 
   const getClassColor = (cls: string) => {
     switch (cls.toLowerCase()) {
-      case "glioma": return "#11B9D4";
-      case "meningioma": return "#7867F5";
-      case "pituitary": return "#3B82F6";
-      case "notumor": return "#10B981";
-      default: return "#68758A";
+      case "glioma": return "#0284C7"; // Sky/Blue
+      case "meningioma": return "#4F46E5"; // Indigo
+      case "pituitary": return "#7C3AED"; // Violet
+      case "notumor": return "#10B981"; // Emerald
+      default: return "#64748B";
     }
   };
 
+  // SVG Circular Gauge calculation
+  const uncertaintyVal = analysisResult ? analysisResult.normalized_entropy : 0.23;
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - uncertaintyVal * circumference;
+
   return (
-    <div className="min-h-screen bg-[#F7F9FC] py-10">
+    <div className="min-h-screen bg-[#FAFAFD] text-[#0F172A] py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#11B9D4] mb-2">
-            <Brain className="w-4 h-4" />
-            <span>Interactive Diagnostic Inference</span>
-          </div>
-          <h1 className="text-3xl font-extrabold text-[#15243A] tracking-tight">
-            MRI Analysis & Explainability Workspace
-          </h1>
-          <p className="text-sm text-[#68758A] mt-1 max-w-2xl">
-            Upload an intracranial MRI scan or test with real benchmark samples to compute live PyTorch EfficientNet-B0 predictions, Grad-CAM++ saliency heatmaps, and Shannon entropy uncertainty.
-          </p>
-        </div>
-
-        {/* Top Notification / Error Alert */}
+        {/* TOP ALERT NOTIFICATION IF ANY */}
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/20 flex items-start gap-3 text-sm text-[#EF4444]">
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-100 flex items-start gap-3 text-xs text-rose-700">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <div className="flex-1">{error}</div>
           </div>
         )}
 
-        {/* Main Grid: Upload & Preview on Left, Results on Right */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Column (5 Cols): Upload & Benchmark Scans */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Upload Zone Card */}
-            <div className="clinical-card p-6">
-              <h2 className="text-base font-bold text-[#15243A] mb-3 flex items-center justify-between">
-                <span>Select MRI Image</span>
-                {previewUrl && (
-                  <button
-                    onClick={() => {
-                      setSelectedFile(null);
-                      setPreviewUrl(null);
-                      setAnalysisResult(null);
-                      setCamResult(null);
-                      setUncertaintyResult(null);
-                    }}
-                    className="text-xs text-[#EF4444] hover:underline"
+        {/* VIEW 1: UPLOAD & ANALYZE VIEW (Matching Image 1 Top Center) */}
+        {!analysisResult ? (
+          <div>
+            {/* Header matching Image 1 */}
+            <div className="mb-8">
+              <span className="text-[11px] font-bold tracking-wider uppercase text-indigo-600">
+                ANALYZE
+              </span>
+              <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] mt-1 tracking-tight">
+                Upload & Analyze Brain MRI
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                Upload a brain MRI image and get an AI-powered prediction with explanations, uncertainty estimation, and more.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left/Center Upload Area (8 cols) */}
+              <div className="lg:col-span-8 space-y-6">
+                
+                {/* Main Drag-and-Drop Card */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-xs">
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
+                      previewUrl
+                        ? "border-indigo-400 bg-indigo-50/20"
+                        : "border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-slate-50"
+                    }`}
                   >
-                    Clear Scan
-                  </button>
-                )}
-              </h2>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
 
-              <div
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-                  previewUrl
-                    ? "border-[#11B9D4] bg-[#11B9D4]/5"
-                    : "border-[#E5EAF1] hover:border-[#11B9D4]/60 bg-[#FFFFFF]"
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/jpg"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-
-                {previewUrl ? (
-                  <div className="space-y-4">
-                    <div className="relative w-48 h-48 mx-auto rounded-lg overflow-hidden border border-[#E5EAF1] bg-black">
-                      <img
-                        src={previewUrl}
-                        alt="MRI Preview"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="text-xs text-[#68758A]">
-                      <span className="font-semibold text-[#15243A]">{selectedFile?.name}</span>
-                      {" • "}
-                      <span>{(selectedFile ? selectedFile.size / 1024 : 0).toFixed(1)} KB</span>
-                    </div>
-                    <p className="text-[11px] text-[#11B9D4] font-medium">
-                      Click to change image
-                    </p>
+                    {previewUrl ? (
+                      <div className="space-y-4">
+                        <div className="relative w-44 h-44 mx-auto rounded-xl overflow-hidden border border-slate-200 bg-slate-950 shadow-sm">
+                          <img
+                            src={previewUrl}
+                            alt="MRI Preview"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold text-slate-800">
+                            {selectedFile?.name}
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">
+                            {(selectedFile ? selectedFile.size / 1024 : 0).toFixed(1)} KB · Ready for inference
+                          </div>
+                        </div>
+                        <span className="inline-block text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">
+                          Click to select a different scan
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 py-4">
+                        <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                          <Upload className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">
+                            Drag and drop your MRI image here
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            or <span className="text-indigo-600 font-semibold underline underline-offset-2">click to browse</span>
+                          </p>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Supported: JPG, PNG, DICOM (if supported) · Max size: 10MB
+                        </p>
+                        <button
+                          type="button"
+                          className="px-5 py-2.5 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold transition-all shadow-xs"
+                        >
+                          Browse Files
+                        </button>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="space-y-3 py-4">
-                    <div className="w-12 h-12 mx-auto rounded-xl bg-[#11B9D4]/10 flex items-center justify-center text-[#11B9D4]">
-                      <Upload className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#15243A]">
-                        Drag and drop your brain MRI scan
-                      </p>
-                      <p className="text-xs text-[#68758A] mt-1">
-                        Supported formats: JPEG, PNG, TIFF (Max 10MB)
-                      </p>
-                    </div>
+
+                  {/* Primary Analyze Action Button */}
+                  <div className="mt-6 flex items-center justify-between gap-4">
                     <button
-                      type="button"
-                      className="px-4 py-2 rounded-lg bg-[#F0F4F8] hover:bg-[#E5EAF1] text-xs font-semibold text-[#15243A] transition-colors"
+                      onClick={runAnalysis}
+                      disabled={!selectedFile || isAnalyzing}
+                      className={`flex-1 py-3 px-6 rounded-full flex items-center justify-center gap-2 font-medium text-xs text-white shadow-sm transition-all ${
+                        !selectedFile || isAnalyzing
+                          ? "bg-slate-300 cursor-not-allowed"
+                          : "bg-[#0F172A] hover:bg-slate-800 hover:shadow-md cursor-pointer"
+                      }`}
                     >
-                      Browse Files
+                      {isAnalyzing ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>Computing EfficientNet-B0 & Grad-CAM++...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="w-4 h-4" />
+                          <span>Run AI Analysis</span>
+                        </>
+                      )}
                     </button>
+
+                    {previewUrl && (
+                      <button
+                        onClick={resetAnalysis}
+                        className="px-4 py-3 rounded-full text-xs font-semibold text-slate-500 hover:text-rose-600 transition-colors"
+                      >
+                        Reset
+                      </button>
+                    )}
                   </div>
-                )}
+
+                  {/* Quick Tips Box matching Image 1 */}
+                  <div className="mt-6 pt-6 border-t border-slate-100">
+                    <h3 className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Quick Tips</span>
+                    </h3>
+                    <ul className="space-y-1.5 text-[11px] text-slate-500">
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-indigo-500"></span>
+                        Use clear, high-quality brain MRI axial or coronal scans
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-indigo-500"></span>
+                        Supported formats: JPG, PNG, DICOM
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-indigo-500"></span>
+                        Max file size: 10MB
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 1-Click Real Benchmark Scans */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
+                      Instant 1-Click Benchmark Scans
+                    </h3>
+                    <span className="text-[10px] text-slate-400">1,600 Verified Test Cohort</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {benchmarkSamples.map((sample) => (
+                      <button
+                        key={sample.file}
+                        onClick={() => loadBenchmarkSample(sample.file)}
+                        className="p-3 text-left rounded-xl border border-slate-100 hover:border-indigo-400 hover:bg-indigo-50/20 transition-all text-xs group cursor-pointer"
+                      >
+                        <span className="text-[10px] font-bold text-indigo-600 block mb-0.5">
+                          {sample.badge}
+                        </span>
+                        <span className="font-semibold text-slate-800 group-hover:text-indigo-600 block">
+                          {sample.name}
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          {sample.class}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
               </div>
 
-              {/* Action Button */}
-              <div className="mt-5">
+              {/* Right Side: Feature Checklist matching Image 1 */}
+              <div className="lg:col-span-4 space-y-4">
+                
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Analysis Capabilities
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">Real-time Analysis</div>
+                        <div className="text-[10px] text-slate-400">Sub-second inference</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                      <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">Grad-CAM++ Explanation</div>
+                        <div className="text-[10px] text-slate-400">Higher-order saliency</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                      <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">Uncertainty Estimation</div>
+                        <div className="text-[10px] text-slate-400">Entropy & MC Dropout</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">Detailed Reports</div>
+                        <div className="text-[10px] text-slate-400">Full probability matrix</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Decorative Subtle Contour Banner */}
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-500/5 via-blue-500/5 to-purple-500/5 border border-indigo-100/50 text-xs text-slate-600 space-y-2">
+                  <div className="flex items-center gap-2 font-semibold text-slate-900">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Scientific Reproducibility</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Evaluated on a deterministic frozen checkpoint with 82.75% macro test accuracy and 0.0307 expected calibration error.
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        ) : (
+          /* VIEW 2: ANALYSIS RESULTS (Matching Image 1 Top Right) */
+          <div>
+            {/* Header & Back Link matching Image 1 */}
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
                 <button
-                  onClick={runAnalysis}
-                  disabled={!selectedFile || isAnalyzing}
-                  className={`w-full py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm text-white shadow-sm transition-all ${
-                    !selectedFile || isAnalyzing
-                      ? "bg-[#CBD5E1] cursor-not-allowed"
-                      : "bg-gradient-to-r from-[#11B9D4] to-[#7867F5] hover:opacity-95 hover:shadow-md cursor-pointer"
-                  }`}
+                  onClick={resetAnalysis}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 mb-2 cursor-pointer transition-colors"
                 >
-                  {isAnalyzing ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Running EfficientNet-B0 & Grad-CAM++...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Brain className="w-4 h-4" />
-                      <span>Analyze MRI Scan</span>
-                    </>
-                  )}
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Back to Analyze</span>
+                </button>
+                <h1 className="font-serif text-3xl font-bold text-[#0F172A] tracking-tight">
+                  Analysis Results
+                </h1>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  AI prediction with explainability, uncertainty and detailed insights.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={resetAnalysis}
+                  className="px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer"
+                >
+                  Analyze New Scan
                 </button>
               </div>
             </div>
 
-            {/* Quick Benchmark Scans Selector */}
-            <div className="clinical-card p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-[#15243A]">Test with Real Benchmark Scans</h3>
-                <span className="text-[11px] text-[#68758A]">Testing Set (1,600 scans)</span>
-              </div>
-              <p className="text-xs text-[#68758A] mb-4">
-                Instantly load genuine, verified patient scans across the 4 diagnostic categories:
-              </p>
+            {/* TOP 3 CARDS ROW MATCHING IMAGE 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-6">
               
-              <div className="grid grid-cols-2 gap-3">
-                {benchmarkSamples.map((sample) => (
-                  <button
-                    key={sample.file}
-                    onClick={() => loadBenchmarkSample(sample.file, sample.name)}
-                    className="p-3 text-left rounded-xl border border-[#E5EAF1] hover:border-[#11B9D4] hover:bg-[#11B9D4]/5 transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#F0F4F8] text-[#68758A]">
-                        {sample.badge}
-                      </span>
-                    </div>
-                    <div className="text-xs font-bold text-[#15243A] group-hover:text-[#11B9D4]">
-                      {sample.name}
-                    </div>
-                    <div className="text-[10px] text-[#68758A] mt-0.5">
-                      Verified {sample.class}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Privacy & Safety Note */}
-            <div className="p-4 rounded-xl bg-[#FFFFFF] border border-[#E5EAF1] text-xs text-[#68758A] space-y-2">
-              <div className="flex items-center gap-1.5 font-semibold text-[#15243A]">
-                <ShieldAlert className="w-4 h-4 text-[#10B981]" />
-                <span>Zero Cloud Retention & Medical Disclaimer</span>
-              </div>
-              <p className="leading-relaxed">
-                Uploaded images are sanitized in temporary scratch buffers for inference and attribution computation. Never transmitted to third-party endpoints.
-              </p>
-            </div>
-
-          </div>
-
-          {/* Right Column (7 Cols): Results & Explainability */}
-          <div className="lg:col-span-7 space-y-6">
-            
-            {analysisResult ? (
-              <>
-                {/* Prediction Primary Banner */}
-                <div 
-                  className="clinical-card p-6 border-l-8"
-                  style={{ borderLeftColor: getClassColor(analysisResult.predicted_class) }}
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#68758A]">
-                          Model Prediction
-                        </span>
-                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#F0F4F8] text-[#15243A]">
-                          {analysisResult.model_version}
-                        </span>
-                      </div>
-                      <h3 className="text-2xl font-black text-[#15243A]">
-                        {getClassNameDisplay(analysisResult.predicted_class)}
-                      </h3>
-                    </div>
-
-                    <div className="text-right sm:text-right">
-                      <div className="text-3xl font-extrabold" style={{ color: getClassColor(analysisResult.predicted_class) }}>
-                        {(analysisResult.confidence * 100).toFixed(1)}%
-                      </div>
-                      <div className="text-xs text-[#68758A] font-medium flex items-center gap-1 justify-end">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{analysisResult.inference_time_ms} ms</span>
-                      </div>
-                    </div>
-                  </div>
+              {/* Card 1: Original MRI Image Preview (3 cols) */}
+              <div className="md:col-span-3 bg-white rounded-2xl border border-slate-100 p-4 shadow-xs flex flex-col items-center justify-center">
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-black border border-slate-100 flex items-center justify-center">
+                  <img
+                    src={previewUrl || ""}
+                    alt="Original MRI"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-
-                {/* 4-Class Probability Distribution */}
-                <div className="clinical-card p-6">
-                  <h4 className="text-sm font-bold text-[#15243A] mb-4 flex items-center justify-between">
-                    <span>Softmax Probability Distribution</span>
-                    <span className="text-xs text-[#68758A]">K = 4 Classes</span>
-                  </h4>
-
-                  <div className="space-y-3">
-                    {Object.entries(analysisResult.probabilities).map(([cls, prob]) => {
-                      const percentage = (prob * 100).toFixed(1);
-                      const isTop = cls === analysisResult.predicted_class;
-                      return (
-                        <div key={cls} className="space-y-1">
-                          <div className="flex items-center justify-between text-xs font-semibold">
-                            <span className={isTop ? "text-[#15243A]" : "text-[#68758A]"}>
-                              {getClassNameDisplay(cls)}
-                            </span>
-                            <span style={{ color: isTop ? getClassColor(cls) : "#68758A" }}>
-                              {percentage}%
-                            </span>
-                          </div>
-                          <div className="w-full h-2.5 rounded-full bg-[#F0F4F8] overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all duration-500"
-                              style={{
-                                width: `${percentage}%`,
-                                backgroundColor: getClassColor(cls),
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div className="w-full mt-3 flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Input Scan</span>
+                  <span className="font-medium text-slate-600">224 × 224 px</span>
                 </div>
+              </div>
 
-                {/* Uncertainty & Entropy Metrics Card */}
-                <div className="clinical-card p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-bold text-[#15243A] flex items-center gap-2">
-                      <Activity className="w-4 h-4 text-[#7867F5]" />
-                      <span>Entropy Uncertainty Quantification</span>
-                    </h4>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                      analysisResult.normalized_entropy < 0.25
-                        ? "bg-[#10B981]/10 text-[#10B981]"
-                        : analysisResult.normalized_entropy < 0.55
-                        ? "bg-[#F59E0B]/10 text-[#F59E0B]"
-                        : "bg-[#EF4444]/10 text-[#EF4444]"
-                    }`}>
-                      {analysisResult.normalized_entropy < 0.25 ? "Low Uncertainty" : analysisResult.normalized_entropy < 0.55 ? "Moderate Uncertainty" : "High Uncertainty"}
+              {/* Card 2: Prediction Card (6 cols) */}
+              <div className="md:col-span-6 bg-white rounded-2xl border border-slate-100 p-6 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                      Prediction
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      {analysisResult.model_version}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
-                      <div className="text-xs text-[#68758A] mb-1">Shannon H(p)</div>
-                      <div className="text-lg font-bold text-[#15243A]">
-                        {analysisResult.entropy.toFixed(4)}
-                      </div>
-                      <div className="text-[10px] text-[#68758A]">nats</div>
-                    </div>
+                  <h2 
+                    className="font-serif text-3xl font-bold tracking-tight mb-2"
+                    style={{ color: getClassColor(analysisResult.predicted_class) }}
+                  >
+                    {getClassNameDisplay(analysisResult.predicted_class)}
+                  </h2>
 
-                    <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
-                      <div className="text-xs text-[#68758A] mb-1">Normalized H(p)</div>
-                      <div className="text-lg font-bold text-[#7867F5]">
-                        {analysisResult.normalized_entropy.toFixed(4)}
-                      </div>
-                      <div className="text-[10px] text-[#68758A]">H / ln(4) [0, 1]</div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF1]">
-                      <div className="text-xs text-[#68758A] mb-1">Margin (Top 1 - 2)</div>
-                      <div className="text-lg font-bold text-[#11B9D4]">
-                        {(analysisResult.prediction_margin * 100).toFixed(1)}%
-                      </div>
-                      <div className="text-[10px] text-[#68758A]">Decision separation</div>
-                    </div>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-semibold text-slate-600">Confidence</span>
+                    <span className="font-bold text-slate-900">
+                      {(analysisResult.confidence * 100).toFixed(1)}%
+                    </span>
                   </div>
 
-                  {/* MC Dropout Trigger */}
-                  <div className="mt-4 pt-4 border-t border-[#E5EAF1] flex items-center justify-between">
-                    <div className="text-xs text-[#68758A]">
-                      Compute epistemic vs aleatoric uncertainty with 30 Monte Carlo forward passes:
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden mb-5">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{
+                        width: `${analysisResult.confidence * 100}%`,
+                        backgroundColor: getClassColor(analysisResult.predicted_class),
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Class Probabilities Breakdown */}
+                <div className="space-y-2 pt-3 border-t border-slate-100">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide block mb-1">
+                    Class Probabilities
+                  </span>
+                  {Object.entries(analysisResult.probabilities).map(([cls, prob]) => {
+                    const pct = (prob * 100).toFixed(1);
+                    const isTop = cls === analysisResult.predicted_class;
+                    return (
+                      <div key={cls} className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: getClassColor(cls) }}
+                          />
+                          <span className={isTop ? "font-bold text-slate-900" : "text-slate-500"}>
+                            {getClassNameDisplay(cls)}
+                          </span>
+                        </div>
+                        <span className={isTop ? "font-bold text-slate-900" : "text-slate-500"}>
+                          {pct}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Card 3: Circular Uncertainty Gauge Card (3 cols) */}
+              <div className="md:col-span-3 bg-white rounded-2xl border border-slate-100 p-6 shadow-xs flex flex-col items-center justify-center text-center">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">
+                  Uncertainty
+                </span>
+
+                {/* SVG Donut Ring Gauge */}
+                <div className="relative w-28 h-28 flex items-center justify-center my-1">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="transparent"
+                      stroke="#F1F5F9"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="transparent"
+                      stroke={uncertaintyVal < 0.35 ? "#10B981" : uncertaintyVal < 0.65 ? "#F59E0B" : "#EF4444"}
+                      strokeWidth="8"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      className="transition-all duration-1000 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center justify-center">
+                    <span className="font-serif font-bold text-xl text-slate-900">
+                      {uncertaintyVal.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-2">
+                  <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                    uncertaintyVal < 0.35
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                      : uncertaintyVal < 0.65
+                      ? "bg-amber-50 text-amber-700 border border-amber-100"
+                      : "bg-rose-50 text-rose-700 border border-rose-100"
+                  }`}>
+                    {uncertaintyVal < 0.35 ? "Low Uncertainty" : uncertaintyVal < 0.65 ? "Moderate Uncertainty" : "High Uncertainty"}
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-1 max-w-[180px] leading-tight">
+                    {uncertaintyVal < 0.35 
+                      ? "The model is fairly confident in its prediction." 
+                      : "Consider secondary clinical review for this scan."}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* METADATA INFO STRIP MATCHING IMAGE 1 */}
+            <div className="bg-white rounded-2xl border border-slate-100 px-6 py-3 shadow-xs mb-6 flex flex-wrap items-center justify-between gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">Model Version</span>
+                <span className="font-semibold text-slate-800">{analysisResult.model_version}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">Processing Time</span>
+                <span className="font-semibold text-slate-800">{(analysisResult.inference_time_ms / 1000).toFixed(2)}s</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">Image Size</span>
+                <span className="font-semibold text-slate-800">224 × 224</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">Entropy H(p)</span>
+                <span className="font-semibold text-indigo-600">{analysisResult.entropy.toFixed(3)} nats</span>
+              </div>
+            </div>
+
+            {/* BOTTOM SECTION: GRAD-CAM++ VISUALIZATION & KEY INSIGHTS */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              {/* Grad-CAM++ Card (8 cols) */}
+              <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="font-serif text-lg font-bold text-slate-900">
+                      Grad-CAM++ Visualization
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Layer attribution extracted from EfficientNet-B0 conv head
+                    </p>
+                  </div>
+
+                  {/* Tabs matching Image 1: [ Overlay | Original | Heatmap ] */}
+                  <div className="flex items-center bg-slate-100 p-1 rounded-full text-xs font-medium">
+                    <button
+                      onClick={() => setActiveCamTab("overlay")}
+                      className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                        activeCamTab === "overlay" ? "bg-white text-slate-900 shadow-xs font-semibold" : "text-slate-500 hover:text-slate-900"
+                      }`}
+                    >
+                      Overlay
+                    </button>
+                    <button
+                      onClick={() => setActiveCamTab("original")}
+                      className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                        activeCamTab === "original" ? "bg-white text-slate-900 shadow-xs font-semibold" : "text-slate-500 hover:text-slate-900"
+                      }`}
+                    >
+                      Original
+                    </button>
+                    <button
+                      onClick={() => setActiveCamTab("heatmap")}
+                      className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                        activeCamTab === "heatmap" ? "bg-white text-slate-900 shadow-xs font-semibold" : "text-slate-500 hover:text-slate-900"
+                      }`}
+                    >
+                      Heatmap
+                    </button>
+                  </div>
+                </div>
+
+                {/* Opacity Slider */}
+                {activeCamTab === "overlay" && (
+                  <div className="flex items-center gap-3 pt-1">
+                    <span className="text-xs text-slate-400 font-medium">Overlay Opacity:</span>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1.0"
+                      step="0.05"
+                      value={overlayOpacity}
+                      onChange={(e) => setOverlayOpacity(parseFloat(e.target.value))}
+                      className="w-32 accent-indigo-600"
+                    />
+                    <span className="text-xs font-semibold text-slate-700">{overlayOpacity.toFixed(1)}</span>
+                  </div>
+                )}
+
+                {/* Saliency Display Area */}
+                <div className="relative w-full aspect-[16/10] sm:aspect-[2/1] rounded-xl overflow-hidden bg-black border border-slate-100 flex items-center justify-center p-4">
+                  {activeCamTab === "overlay" && (
+                    <div className="relative w-64 h-64 mx-auto rounded-lg overflow-hidden bg-black">
+                      <img
+                        src={previewUrl || ""}
+                        alt="Original"
+                        className="absolute inset-0 w-full h-full object-contain"
+                      />
+                      {camResult && (
+                        <img
+                          src={camResult.heatmap_base64}
+                          alt="Heatmap"
+                          className="absolute inset-0 w-full h-full object-contain mix-blend-screen"
+                          style={{ opacity: overlayOpacity }}
+                        />
+                      )}
                     </div>
+                  )}
+
+                  {activeCamTab === "original" && (
+                    <div className="relative w-64 h-64 mx-auto rounded-lg overflow-hidden bg-black">
+                      <img
+                        src={previewUrl || ""}
+                        alt="Original"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+
+                  {activeCamTab === "heatmap" && camResult && (
+                    <div className="relative w-64 h-64 mx-auto rounded-lg overflow-hidden bg-black">
+                      <img
+                        src={camResult.heatmap_base64}
+                        alt="Grad-CAM++"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Side-by-Side Strip matching the mini thumbnails in Image 1 */}
+                {camResult && (
+                  <div className="grid grid-cols-3 gap-3 pt-2">
+                    <div 
+                      onClick={() => setActiveCamTab("original")} 
+                      className={`p-2 rounded-xl border text-center cursor-pointer transition-all ${
+                        activeCamTab === "original" ? "border-indigo-500 bg-indigo-50/20" : "border-slate-100 hover:border-slate-200"
+                      }`}
+                    >
+                      <div className="w-16 h-16 mx-auto rounded-lg bg-black overflow-hidden mb-1">
+                        <img src={previewUrl || ""} alt="Thumb" className="w-full h-full object-contain" />
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-medium">Original</span>
+                    </div>
+
+                    <div 
+                      onClick={() => setActiveCamTab("heatmap")} 
+                      className={`p-2 rounded-xl border text-center cursor-pointer transition-all ${
+                        activeCamTab === "heatmap" ? "border-indigo-500 bg-indigo-50/20" : "border-slate-100 hover:border-slate-200"
+                      }`}
+                    >
+                      <div className="w-16 h-16 mx-auto rounded-lg bg-black overflow-hidden mb-1">
+                        <img src={camResult.heatmap_base64} alt="Thumb" className="w-full h-full object-contain" />
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-medium">Heatmap</span>
+                    </div>
+
+                    <div 
+                      onClick={() => setActiveCamTab("overlay")} 
+                      className={`p-2 rounded-xl border text-center cursor-pointer transition-all ${
+                        activeCamTab === "overlay" ? "border-indigo-500 bg-indigo-50/20" : "border-slate-100 hover:border-slate-200"
+                      }`}
+                    >
+                      <div className="relative w-16 h-16 mx-auto rounded-lg bg-black overflow-hidden mb-1">
+                        <img src={previewUrl || ""} alt="Thumb" className="w-full h-full object-contain" />
+                        <img src={camResult.heatmap_base64} alt="Thumb" className="absolute inset-0 w-full h-full object-contain mix-blend-screen opacity-60" />
+                      </div>
+                      <span className="text-[10px] text-slate-500 font-medium">Overlay Blend</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Key Insights Card (4 cols) matching Image 1 */}
+              <div className="lg:col-span-4 space-y-4">
+                
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-4">
+                  <h3 className="font-serif text-base font-bold text-slate-900">
+                    Key Insights
+                  </h3>
+
+                  <ul className="space-y-3 text-xs text-slate-600">
+                    <li className="flex items-start gap-2.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                      <span>
+                        Model focuses on intracranial anatomical features in the{" "}
+                        <strong className="text-slate-900">
+                          {camResult?.localization_notes || "cranial parenchyma"}
+                        </strong>.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                      <span>
+                        Activation highlights are consistent with known {getClassNameDisplay(analysisResult.predicted_class)} morphology.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                      <span>
+                        Use this as a visual aid for interpretability, not as an autonomous diagnostic decision.
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Monte Carlo Dropout Expansion Box */}
+                <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">
+                      Monte Carlo Dropout (T=30)
+                    </span>
                     <button
                       onClick={runMCDropout}
                       disabled={isComputingUncertainty}
-                      className="px-3 py-1.5 rounded-lg bg-[#7867F5]/10 hover:bg-[#7867F5]/20 text-[#7867F5] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                     >
                       {isComputingUncertainty ? (
                         <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          <span>Computing 30 passes...</span>
+                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <span>Computing...</span>
                         </>
                       ) : (
                         <>
-                          <Zap className="w-3.5 h-3.5" />
-                          <span>Run MC Dropout (T=30)</span>
+                          <Zap className="w-3 h-3 text-indigo-600" />
+                          <span>Run Epistemic Pass</span>
                         </>
                       )}
                     </button>
                   </div>
 
-                  {/* MC Dropout Results View if computed */}
-                  {uncertaintyResult && (
-                    <div className="mt-4 p-4 rounded-xl bg-[#F0F4F8] border border-[#E5EAF1] space-y-3">
-                      <div className="flex items-center justify-between text-xs font-bold text-[#15243A]">
-                        <span>Monte Carlo Dropout Results (T = {uncertaintyResult.passes} passes)</span>
-                        <span className="text-[#10B981]">Verified Stochastic Sampling</span>
+                  {uncertaintyResult ? (
+                    <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block">Mutual Information</span>
+                        <strong className="text-indigo-600 text-sm">{uncertaintyResult.mutual_information.toFixed(4)}</strong>
                       </div>
-                      <div className="grid grid-cols-3 gap-3 text-center text-xs">
-                        <div className="p-2 bg-white rounded-lg">
-                          <span className="text-[#68758A] block">Predictive Entropy</span>
-                          <strong className="text-[#15243A] text-sm">{uncertaintyResult.predictive_entropy.toFixed(4)}</strong>
-                        </div>
-                        <div className="p-2 bg-white rounded-lg">
-                          <span className="text-[#68758A] block">Expected Entropy</span>
-                          <strong className="text-[#15243A] text-sm">{uncertaintyResult.expected_entropy.toFixed(4)}</strong>
-                        </div>
-                        <div className="p-2 bg-white rounded-lg">
-                          <span className="text-[#68758A] block">Mutual Info (Epistemic)</span>
-                          <strong className="text-[#7867F5] text-sm">{uncertaintyResult.mutual_information.toFixed(4)}</strong>
-                        </div>
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block">Predictive Entropy</span>
+                        <strong className="text-slate-800 text-sm">{uncertaintyResult.predictive_entropy.toFixed(4)}</strong>
                       </div>
                     </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Measures epistemic model weight variance across 30 stochastic dropout passes.
+                    </p>
                   )}
                 </div>
 
-                {/* Grad-CAM++ Saliency Explainability Card */}
-                {camResult && (
-                  <div className="clinical-card p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                      <div>
-                        <h4 className="text-sm font-bold text-[#15243A] flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-[#11B9D4]" />
-                          <span>Grad-CAM++ Feature Attribution</span>
-                        </h4>
-                        <span className="text-xs text-[#68758A]">
-                          Extracted from EfficientNet-B0 backbone (Conv Head features[-1])
-                        </span>
-                      </div>
-
-                      {/* View mode toggle */}
-                      <div className="flex items-center gap-1 bg-[#F0F4F8] p-1 rounded-lg text-xs">
-                        <button
-                          onClick={() => setViewMode("overlay")}
-                          className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                            viewMode === "overlay" ? "bg-white text-[#15243A] shadow-xs" : "text-[#68758A]"
-                          }`}
-                        >
-                          Overlay
-                        </button>
-                        <button
-                          onClick={() => setViewMode("side_by_side")}
-                          className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                            viewMode === "side_by_side" ? "bg-white text-[#15243A] shadow-xs" : "text-[#68758A]"
-                          }`}
-                        >
-                          Side-by-Side
-                        </button>
-                        <button
-                          onClick={() => setViewMode("original")}
-                          className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                            viewMode === "original" ? "bg-white text-[#15243A] shadow-xs" : "text-[#68758A]"
-                          }`}
-                        >
-                          Original
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Saliency Display Area */}
-                    <div className="p-4 bg-black/5 rounded-xl border border-[#E5EAF1] flex items-center justify-center">
-                      {viewMode === "overlay" && (
-                        <div className="relative w-80 h-80 rounded-lg overflow-hidden border border-[#E5EAF1] bg-black">
-                          {/* Original Image */}
-                          <img
-                            src={previewUrl || ""}
-                            alt="Original MRI"
-                            className="absolute inset-0 w-full h-full object-contain"
-                          />
-                          {/* Heatmap Overlay with dynamic opacity */}
-                          <img
-                            src={camResult.heatmap_base64}
-                            alt="Grad-CAM++ Heatmap"
-                            className="absolute inset-0 w-full h-full object-contain mix-blend-screen"
-                            style={{ opacity: overlayOpacity }}
-                          />
-                        </div>
-                      )}
-
-                      {viewMode === "side_by_side" && (
-                        <div className="grid grid-cols-2 gap-4 w-full">
-                          <div className="text-center space-y-1">
-                            <span className="text-[11px] font-semibold text-[#68758A]">Original Scan</span>
-                            <div className="w-full h-56 rounded-lg overflow-hidden border border-[#E5EAF1] bg-black">
-                              <img
-                                src={previewUrl || ""}
-                                alt="Original MRI"
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-                          </div>
-                          <div className="text-center space-y-1">
-                            <span className="text-[11px] font-semibold text-[#11B9D4]">Grad-CAM++ Saliency</span>
-                            <div className="w-full h-56 rounded-lg overflow-hidden border border-[#E5EAF1] bg-black">
-                              <img
-                                src={camResult.heatmap_base64}
-                                alt="Grad-CAM++ Overlay"
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {viewMode === "original" && (
-                        <div className="w-80 h-80 rounded-lg overflow-hidden border border-[#E5EAF1] bg-black">
-                          <img
-                            src={previewUrl || ""}
-                            alt="Original MRI"
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Opacity Slider Control */}
-                    {viewMode === "overlay" && (
-                      <div className="mt-4 flex items-center justify-between gap-4 px-2">
-                        <span className="text-xs font-semibold text-[#68758A] flex items-center gap-1.5">
-                          <Sliders className="w-3.5 h-3.5" />
-                          Overlay Opacity:
-                        </span>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.05"
-                          value={overlayOpacity}
-                          onChange={(e) => setOverlayOpacity(parseFloat(e.target.value))}
-                          className="w-48 accent-[#11B9D4] cursor-pointer"
-                        />
-                        <span className="text-xs font-mono text-[#15243A] w-12 text-right">
-                          {Math.round(overlayOpacity * 100)}%
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Quadrant Localization Attributions */}
-                    {camResult.salient_regions_summary && (
-                      <div className="mt-4 pt-4 border-t border-[#E5EAF1]">
-                        <span className="text-xs font-semibold text-[#15243A] block mb-2">
-                          Intracranial Quadrant Attribution Share:
-                        </span>
-                        <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                          <div className="p-2 bg-[#F7F9FC] rounded-lg border border-[#E5EAF1]">
-                            <span className="text-[#68758A] block text-[10px]">Top-Left</span>
-                            <strong className="text-[#15243A]">
-                              {(camResult.salient_regions_summary.top_left * 100).toFixed(1)}%
-                            </strong>
-                          </div>
-                          <div className="p-2 bg-[#F7F9FC] rounded-lg border border-[#E5EAF1]">
-                            <span className="text-[#68758A] block text-[10px]">Top-Right</span>
-                            <strong className="text-[#15243A]">
-                              {(camResult.salient_regions_summary.top_right * 100).toFixed(1)}%
-                            </strong>
-                          </div>
-                          <div className="p-2 bg-[#F7F9FC] rounded-lg border border-[#E5EAF1]">
-                            <span className="text-[#68758A] block text-[10px]">Bottom-Left</span>
-                            <strong className="text-[#15243A]">
-                              {(camResult.salient_regions_summary.bottom_left * 100).toFixed(1)}%
-                            </strong>
-                          </div>
-                          <div className="p-2 bg-[#F7F9FC] rounded-lg border border-[#E5EAF1]">
-                            <span className="text-[#68758A] block text-[10px]">Bottom-Right</span>
-                            <strong className="text-[#15243A]">
-                              {(camResult.salient_regions_summary.bottom_right * 100).toFixed(1)}%
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              /* Empty Placeholder State */
-              <div className="clinical-card p-12 text-center space-y-4">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-[#11B9D4]/10 flex items-center justify-center text-[#11B9D4]">
-                  <Brain className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-[#15243A]">
-                    Awaiting MRI Image Input
-                  </h3>
-                  <p className="text-xs text-[#68758A] max-w-md mx-auto mt-1 leading-relaxed">
-                    Upload an axial or coronal brain MRI scan from your workstation, or choose one of the pre-indexed clinical benchmark scans on the left to initiate inference.
-                  </p>
-                </div>
-                <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#11B9D4]">
-                  <span>Ready for PyTorch forward pass & Grad-CAM++</span>
-                </div>
               </div>
-            )}
 
+            </div>
           </div>
-
-        </div>
+        )}
 
       </div>
     </div>

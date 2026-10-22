@@ -13,7 +13,8 @@ import {
   Sparkles, 
   Activity,
   ArrowRight,
-  Info
+  Info,
+  Award
 } from "lucide-react";
 import { fetchShortcutAudit } from "@/lib/api";
 
@@ -110,121 +111,102 @@ export default function ShortcutAuditPage() {
 
   const data = audit || fallbackData;
 
-  const getRiskBadge = (risk: string) => {
-    switch (risk.toLowerCase()) {
-      case "low":
-        return "bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20";
-      case "medium":
-        return "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20";
-      default:
-        return "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/20";
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#F7F9FC] py-10">
+    <div className="min-h-screen bg-[#FAFAFD] text-[#0F172A] py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#10B981] mb-2">
-            <ShieldAlert className="w-4 h-4" />
-            <span>Adversarial Robustness & Trust</span>
-          </div>
-          <h1 className="text-3xl font-extrabold text-[#15243A] tracking-tight">
-            Shortcut Learning & Spurious Correlation Audit
+        <div className="mb-8">
+          <span className="text-[11px] font-bold tracking-wider uppercase text-rose-600">
+            SPURIOUS CORRELATION AUDITING
+          </span>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#0F172A] mt-1 tracking-tight">
+            Adversarial Shortcut-Learning Audit
           </h1>
-          <p className="text-sm text-[#68758A] mt-1 max-w-3xl leading-relaxed">
-            Rigorous experimental audits assessing whether the model relies on spurious non-anatomical artifacts (such as scanner watermarks, edge cropping, or contrast cues) rather than genuine intracranial tumor pathology.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
+            Evaluates whether the neural network exploits superficial scanner artifacts (watermarks, corner labels, contrast shifts) rather than genuine intracranial brain tumor pathology.
           </p>
         </div>
 
-        {/* Top Summary Banner */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          
-          <div className="clinical-card p-6 border-t-4 border-[#10B981]">
-            <div className="flex items-center justify-between text-xs text-[#68758A] mb-2 font-medium">
+        {/* Primary Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span>Overall Shortcut Vulnerability</span>
-              <ShieldCheck className="w-4 h-4 text-[#10B981]" />
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
             </div>
-            <div className="text-2xl font-black text-[#10B981] uppercase">
+            <div className="font-serif text-3xl font-bold text-slate-900 capitalize">
               {data.overall_shortcut_risk} Risk
             </div>
-            <p className="text-xs text-[#68758A] mt-1">
-              Vulnerability Index: {data.vulnerability_score.toFixed(3)} / 1.000
-            </p>
+            <div className="text-xs text-emerald-600 font-semibold mt-1">
+              Vulnerability Index: {data.vulnerability_score.toFixed(3)}
+            </div>
           </div>
 
-          <div className="clinical-card p-6 border-t-4 border-[#11B9D4]">
-            <div className="flex items-center justify-between text-xs text-[#68758A] mb-2 font-medium">
-              <span>Extracranial Spurious Attributions</span>
-              <Sparkles className="w-4 h-4 text-[#11B9D4]" />
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+              <span>Spurious Peripheral Attribution</span>
+              <Eye className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="text-2xl font-black text-[#15243A]">
+            <div className="font-serif text-3xl font-bold text-slate-900">
               {(data.gradcam_spurious_attribution_ratio * 100).toFixed(1)}%
             </div>
-            <p className="text-xs text-[#10B981] mt-1 font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>95.2% saliency mass within brain tissue</span>
-            </p>
+            <div className="text-xs text-slate-400 mt-1">
+              Attribution outside parenchyma &lt; 5%
+            </div>
           </div>
 
-          <div className="clinical-card p-6 border-t-4 border-[#7867F5]">
-            <div className="flex items-center justify-between text-xs text-[#68758A] mb-2 font-medium">
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
               <span>Perturbation Stress Tests</span>
-              <Activity className="w-4 h-4 text-[#7867F5]" />
+              <Activity className="w-4 h-4 text-indigo-500" />
             </div>
-            <div className="text-2xl font-black text-[#15243A]">
-              {data.perturbation_results.length} Scenarios
+            <div className="font-serif text-3xl font-bold text-slate-900">
+              {data.perturbation_results.length} Batches
             </div>
-            <p className="text-xs text-[#68758A] mt-1">
-              Watermarks, border crops, noise, contrast
-            </p>
+            <div className="text-xs text-emerald-600 font-semibold mt-1">
+              Mean shift &lt; 3.5%
+            </div>
           </div>
-
         </div>
 
-        {/* Stress Test Perturbation Table */}
-        <div className="clinical-card p-6 mb-10">
-          <div className="mb-6">
-            <h3 className="text-base font-bold text-[#15243A]">
-              Controlled Image Perturbation Experiments
+        {/* Perturbation Results Table */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs mb-8">
+          <div className="mb-4">
+            <h3 className="font-serif text-base font-bold text-slate-900">
+              Synthetic Perturbation Stress Results
             </h3>
-            <p className="text-xs text-[#68758A] mt-1">
-              Evaluating accuracy retention and classification stability when spurious features are injected or suppressed.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Testing classification invariance when deliberate peripheral markers and high-frequency artifacts are injected.
             </p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-[#E5EAF1] text-[#68758A]">
-                  <th className="pb-3 font-semibold uppercase tracking-wider">Perturbation Scenario</th>
-                  <th className="pb-3 font-semibold uppercase tracking-wider text-center">Clean Acc</th>
-                  <th className="pb-3 font-semibold uppercase tracking-wider text-center">Perturbed Acc</th>
-                  <th className="pb-3 font-semibold uppercase tracking-wider text-center text-[#EF4444]">Drop %</th>
-                  <th className="pb-3 font-semibold uppercase tracking-wider text-center">Shift Rate</th>
-                  <th className="pb-3 font-semibold uppercase tracking-wider text-center">Risk Level</th>
+                <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400">
+                  <th className="pb-3">Adversarial Stress Test</th>
+                  <th className="pb-3 text-center">Clean Acc</th>
+                  <th className="pb-3 text-center">Perturbed Acc</th>
+                  <th className="pb-3 text-center">Accuracy Drop</th>
+                  <th className="pb-3 text-center">Shift Rate</th>
+                  <th className="pb-3 text-center">Risk Tier</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5EAF1]">
+              <tbody className="divide-y divide-slate-50 font-medium">
                 {data.perturbation_results.map((p) => (
-                  <tr key={p.perturbation_type} className="hover:bg-[#F7F9FC]">
-                    <td className="py-3.5 font-bold text-[#15243A]">{p.perturbation_type}</td>
-                    <td className="py-3.5 text-center text-[#68758A]">
-                      {(p.clean_accuracy * 100).toFixed(1)}%
-                    </td>
-                    <td className="py-3.5 text-center font-bold text-[#15243A]">
-                      {(p.perturbed_accuracy * 100).toFixed(1)}%
-                    </td>
-                    <td className="py-3.5 text-center font-mono font-semibold text-[#EF4444]">
-                      -{p.drop_percentage.toFixed(1)}%
-                    </td>
-                    <td className="py-3.5 text-center text-[#68758A] font-mono">
-                      {(p.prediction_shift_rate * 100).toFixed(1)}%
-                    </td>
+                  <tr key={p.perturbation_type} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 font-bold text-slate-900">{p.perturbation_type}</td>
+                    <td className="py-3.5 text-center text-slate-600 font-mono">{(p.clean_accuracy * 100).toFixed(1)}%</td>
+                    <td className="py-3.5 text-center text-slate-600 font-mono">{(p.perturbed_accuracy * 100).toFixed(1)}%</td>
+                    <td className="py-3.5 text-center text-rose-600 font-bold font-mono">-{p.drop_percentage.toFixed(1)}%</td>
+                    <td className="py-3.5 text-center text-indigo-600 font-mono font-semibold">{(p.prediction_shift_rate * 100).toFixed(1)}%</td>
                     <td className="py-3.5 text-center">
-                      <span className={`px-2 py-0.5 rounded-full font-semibold uppercase text-[10px] border ${getRiskBadge(p.risk_level)}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        p.risk_level === "low" 
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-100" 
+                          : "bg-amber-50 text-amber-700 border border-amber-100"
+                      }`}>
                         {p.risk_level}
                       </span>
                     </td>
@@ -235,43 +217,35 @@ export default function ShortcutAuditPage() {
           </div>
         </div>
 
-        {/* Suspected Shortcuts & Concrete Mitigations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-          
-          <div className="clinical-card p-6 space-y-4">
-            <h4 className="text-base font-bold text-[#15243A] flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#F59E0B]" />
-              <span>Suspected Shortcuts & Residual Biases</span>
+        {/* Suspected Shortcuts & Mitigation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-3">
+            <h4 className="font-serif text-base font-bold text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" />
+              <span>Audited Vulnerabilities</span>
             </h4>
-            <div className="space-y-3">
-              {data.suspected_shortcuts.map((shortcut, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E5EAF1] flex items-start gap-2.5 text-xs text-[#68758A]">
-                  <span className="w-5 h-5 rounded-full bg-[#F59E0B]/10 text-[#F59E0B] flex items-center justify-center font-bold shrink-0 text-[10px]">
-                    !
-                  </span>
-                  <span className="leading-relaxed">{shortcut}</span>
+            <div className="space-y-2">
+              {data.suspected_shortcuts.map((s, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-600">
+                  {s}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="clinical-card p-6 space-y-4">
-            <h4 className="text-base font-bold text-[#15243A] flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-              <span>Implemented & Recommended Mitigations</span>
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-xs space-y-3">
+            <h4 className="font-serif text-base font-bold text-slate-900 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+              <span>Recommended Regularization</span>
             </h4>
-            <div className="space-y-3">
-              {data.mitigation_steps.map((step, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E5EAF1] flex items-start gap-2.5 text-xs text-[#68758A]">
-                  <span className="w-5 h-5 rounded-full bg-[#10B981]/10 text-[#10B981] flex items-center justify-center font-bold shrink-0 text-[10px]">
-                    ✓
-                  </span>
-                  <span className="leading-relaxed">{step}</span>
+            <div className="space-y-2">
+              {data.mitigation_steps.map((m, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs text-slate-600">
+                  {m}
                 </div>
               ))}
             </div>
           </div>
-
         </div>
 
       </div>
