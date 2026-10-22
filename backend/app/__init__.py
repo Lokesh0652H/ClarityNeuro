@@ -1,1 +1,1 @@
-"""NeuroScan XAI App package."""
+"""ClarityNeuro App package."""

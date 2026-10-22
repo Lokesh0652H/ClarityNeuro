@@ -1,5 +1,5 @@
 """
-Comprehensive Test Suite for NeuroScan XAI Backend.
+Comprehensive Test Suite for ClarityNeuro Backend.
 Tests Health, Inference, Grad-CAM++, Uncertainty, Evaluation, and Audits.
 """
 

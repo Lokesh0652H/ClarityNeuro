@@ -1,4 +1,4 @@
-"""Application configuration settings for NeuroScan XAI Backend.
+"""Application configuration settings for ClarityNeuro Backend.
 
 Uses Pydantic BaseSettings to read environment variables with type safety
 and sensible defaults.
@@ -11,16 +11,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """NeuroScan XAI Backend application settings."""
+    """ClarityNeuro Backend application settings."""
 
     # Core Settings
-    PROJECT_NAME: str = "NeuroScan XAI Backend"
+    PROJECT_NAME: str = "ClarityNeuro Backend"
     VERSION: str = "1.0.0"
     DEBUG: bool = False
     API_V1_STR: str = "/api"
 
     # Database
-    DATABASE_URL: str = "sqlite:///./neuroscan.db"
+    DATABASE_URL: str = "sqlite:///./clarityneuro.db"
 
     # Model and Inference Settings
     MODEL_PATH: str = "models/efficientnet_b0_brain_tumor.pth"

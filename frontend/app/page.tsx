@@ -134,7 +134,7 @@ export default function HomePage() {
 
               {/* Precise Subtitle */}
               <p className="text-base sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
-                NeuroScan XAI is a research platform for brain MRI tumor analysis — real EfficientNet-B0 inference, Grad-CAM++ explainability, uncertainty quantification, and honest fairness & shortcut-learning audits.
+                ClarityNeuro is a research platform for brain MRI tumor analysis — real EfficientNet-B0 inference, Grad-CAM++ explainability, uncertainty quantification, and honest fairness & shortcut-learning audits.
               </p>
 
               {/* Action Buttons matching Image 1 & Image 2 */}

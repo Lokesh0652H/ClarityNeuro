@@ -1,5 +1,5 @@
 /**
- * NeuroScan XAI API Client
+ * ClarityNeuro API Client
  * Interfaces directly with the FastAPI backend on http://localhost:8000
  */
 

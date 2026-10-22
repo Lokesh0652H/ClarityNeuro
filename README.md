@@ -1,4 +1,4 @@
-# ClarityNeuro (NeuroScan XAI)
+# ClarityNeuro
 ### Explainable AI & Uncertainty-Aware Deep Learning for Brain Tumor MRI Analysis
 
 [![PyTorch 2.13](https://img.shields.io/badge/PyTorch-2.13%2BCPU-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
@@ -109,7 +109,7 @@ graph TD
         Validator["Image Decoder & Sanitizer (PIL)"]
         ModelSvc["Model Service (ModelService Singleton)"]
         AuditSvc["Audit & Evaluation Orchestrator"]
-        DB["SQLite DB via SQLAlchemy (neuroscan.db)"]
+        DB["SQLite DB via SQLAlchemy (clarityneuro.db)"]
     end
 
     subgraph ML ["Machine Learning Pipeline (PyTorch 2.13)"]
@@ -582,14 +582,14 @@ The backend reads configuration safely via Pydantic BaseSettings:
 
 ```ini
 # backend/.env
-PROJECT_NAME="NeuroScan XAI Backend"
+PROJECT_NAME="ClarityNeuro Backend"
 VERSION="1.0.0"
 DEBUG=False
 MODEL_PATH="models/efficientnet_b0_brain_tumor.pth"
 MODEL_CLASSES=["glioma", "meningioma", "pituitary", "notumor"]
 MODEL_DEVICE="cpu"
 DATASET_PATH="../ml/data/raw"
-DATABASE_URL="sqlite:///./neuroscan.db"
+DATABASE_URL="sqlite:///./clarityneuro.db"
 CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
 ```
 

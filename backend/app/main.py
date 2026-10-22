@@ -1,4 +1,4 @@
-"""FastAPI application entry point for NeuroScan XAI Backend."""
+"""FastAPI application entry point for ClarityNeuro Backend."""
 
 import logging
 from contextlib import asynccontextmanager
@@ -17,13 +17,13 @@ logging.basicConfig(
     level=logging.DEBUG if settings.DEBUG else logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-logger = logging.getLogger("neuroscan")
+logger = logging.getLogger("clarityneuro")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan context manager for startup and shutdown routines."""
-    logger.info("Initializing NeuroScan XAI database...")
+    logger.info("Initializing ClarityNeuro database...")
     try:
         init_db()
         logger.info("Database initialized successfully.")
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    logger.info("Shutting down NeuroScan XAI Backend...")
+    logger.info("Shutting down ClarityNeuro Backend...")
 
 
 def create_application() -> FastAPI:

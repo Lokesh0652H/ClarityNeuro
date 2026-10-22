@@ -51,7 +51,7 @@ export default function ExplainabilityPage() {
             Grad-CAM++ Feature Attribution Methodology
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
-            NeuroScan XAI utilizes genuine Gradient-Weighted Class Activation Mapping++ (Grad-CAM++) computed on the final convolutional features of EfficientNet-B0 to provide pixel-level diagnostic interpretability.
+            ClarityNeuro utilizes genuine Gradient-Weighted Class Activation Mapping++ (Grad-CAM++) computed on the final convolutional features of EfficientNet-B0 to provide pixel-level diagnostic interpretability.
           </p>
         </div>
 
@@ -149,7 +149,7 @@ export default function ExplainabilityPage() {
                 <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-400">
                   <th className="pb-3">Evaluation Axis</th>
                   <th className="pb-3 text-slate-500">Standard Grad-CAM (Selvaraju et al.)</th>
-                  <th className="pb-3 text-indigo-600 font-bold">Grad-CAM++ (NeuroScan XAI)</th>
+                  <th className="pb-3 text-indigo-600 font-bold">Grad-CAM++ (ClarityNeuro)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 font-medium">

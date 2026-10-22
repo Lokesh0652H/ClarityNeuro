@@ -26,7 +26,7 @@ EXCLUDED_DIR_NAMES = {
 }
 
 EXCLUDED_FILE_EXTENSIONS = {".pyc", ".pyo", ".pyd", ".db-journal"}
-EXCLUDED_FILE_NAMES = {".env", "neuroscan.db", ".DS_Store"}
+EXCLUDED_FILE_NAMES = {".env", "neuroscan.db", "clarityneuro.db", ".DS_Store"}
 
 
 def should_exclude(rel_path: Path) -> bool:
@@ -50,7 +50,7 @@ def should_exclude(rel_path: Path) -> bool:
 
 @router.get("/project")
 def export_project_zip() -> Response:
-    """Generate a clean ZIP archive of the entire NeuroScan XAI project source tree.
+    """Generate a clean ZIP archive of the entire ClarityNeuro project source tree.
 
     Excludes virtual environments, cache files, node modules, temporary uploads,
     and sensitive configuration files.
@@ -87,7 +87,7 @@ def export_project_zip() -> Response:
     zip_bytes = buffer.getvalue()
 
     headers = {
-        "Content-Disposition": 'attachment; filename="neuroscan-xai-source.zip"',
+        "Content-Disposition": 'attachment; filename="clarityneuro-source.zip"',
         "Content-Length": str(len(zip_bytes)),
     }
     return Response(content=zip_bytes, media_type="application/zip", headers=headers)

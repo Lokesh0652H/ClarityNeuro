@@ -8,13 +8,15 @@ from fastapi.responses import JSONResponse
 logger = logging.getLogger(__name__)
 
 
-class NeuroScanException(Exception):
-    """Base exception for all NeuroScan custom exceptions."""
+class ClarityNeuroException(Exception):
+    """Base exception for all ClarityNeuro custom exceptions."""
     def __init__(self, message: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR, detail: Optional[Dict[str, Any]] = None):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
         self.detail = detail or {}
+
+NeuroScanException = ClarityNeuroException
 
 
 class ModelNotAvailableException(NeuroScanException):

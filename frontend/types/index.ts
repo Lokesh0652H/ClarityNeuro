@@ -1,4 +1,4 @@
-// NeuroScan XAI — Core TypeScript types
+// ClarityNeuro — Core TypeScript types
 
 export interface HealthStatus {
   status: string;

@@ -12,7 +12,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             <span>
-              <strong>Research & Educational Tool:</strong> NeuroScan XAI is designed for interpretability research and educational evaluation, not as a standalone medical diagnostic device.
+              <strong>Research & Educational Tool:</strong> ClarityNeuro is designed for interpretability research and educational evaluation, not as a standalone medical diagnostic device.
             </span>
           </div>
           <span className="hidden sm:inline text-[11px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
