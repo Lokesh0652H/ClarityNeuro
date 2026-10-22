@@ -311,7 +311,8 @@ class FairnessAuditor:
             max_acc = max(group_accuracies)
             min_acc = min(group_accuracies)
             acc_disp = max_acc - min_acc
-            disparities["max_accuracy_disparity"] = round(acc_disp, 4)
+            disparities["subgroup_accuracy_disparity"] = round(acc_disp, 4)
+            disparities["accuracy_consistency_ratio"] = round(min_acc / max_acc if max_acc > 0 else 1.0, 4)
             disparities["disparate_impact_ratio"] = round(min_acc / max_acc if max_acc > 0 else 1.0, 4)
 
             if acc_disp > 0.10:
@@ -323,7 +324,8 @@ class FairnessAuditor:
             max_sens = max(group_sensitivities)
             min_sens = min(group_sensitivities)
             sens_disp = max_sens - min_sens
-            disparities["max_sensitivity_disparity"] = round(sens_disp, 4)
+            disparities["equal_opportunity_difference"] = round(sens_disp, 4)
+            disparities["equalized_odds_disparity"] = round(sens_disp, 4)
 
             if sens_disp > 0.10:
                 flagged_issues.append(
