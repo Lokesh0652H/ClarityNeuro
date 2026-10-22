@@ -38,6 +38,7 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .font-serif {
@@ -83,6 +84,107 @@ body {
   border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 20px;
   box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.03);
+  transition: all 0.25s ease;
+}
+
+/* ========================================================
+   DARK THEME STYLING
+   Activates smoothly when html.dark is toggled
+   ======================================================== */
+html.dark {
+  --background: #0B0F17;
+  --foreground: #F8FAFC;
+  --card: #131B2E;
+  --card-foreground: #F8FAFC;
+  --border: #1E293B;
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0B0F17;
+  color: #F8FAFC;
+}
+
+html.dark .bg-grid-clean {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+}
+
+html.dark .ambient-glow {
+  background-image: radial-gradient(ellipse 90% 60% at 50% -15%, rgba(99, 102, 241, 0.22), transparent 75%);
+}
+
+html.dark header {
+  background-color: rgba(11, 15, 23, 0.85) !important;
+  border-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+html.dark footer {
+  background-color: #0B0F17 !important;
+  border-color: rgba(30, 41, 59, 0.8) !important;
+}
+
+html.dark .clean-card,
+html.dark .clean-card-flat {
+  background-color: rgba(19, 27, 46, 0.85);
+  border-color: rgba(51, 65, 85, 0.6);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .clean-card:hover {
+  border-color: rgba(129, 140, 248, 0.5);
+  box-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.6);
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark .font-serif {
+  color: #F8FAFC;
+}
+
+html.dark p,
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #94A3B8;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #F1F5F9;
+}
+
+html.dark .text-slate-700 {
+  color: #E2E8F0;
+}
+
+html.dark .text-slate-400 {
+  color: #64748B;
+}
+
+html.dark .bg-white,
+html.dark .bg-white\/95,
+html.dark .bg-white\/90,
+html.dark .bg-white\/80 {
+  background-color: rgba(19, 27, 46, 0.95);
+  border-color: rgba(51, 65, 85, 0.65);
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-slate-100 {
+  background-color: rgba(30, 41, 59, 0.6);
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/60,
+html.dark .border-slate-200\/70,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-200\/90 {
+  border-color: rgba(51, 65, 85, 0.6);
 }
 
 /* Custom scrollbar for clean clinical UI */
@@ -95,9 +197,17 @@ body {
   background: #F8FAFC;
 }
 
+html.dark ::-webkit-scrollbar-track {
+  background: #0B0F17;
+}
+
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
 }
 
 ::-webkit-scrollbar-thumb:hover {
